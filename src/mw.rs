@@ -5,7 +5,7 @@ use crate::utils;
 
 // Set session middleware
 pub fn build_session(name: &str, day: i64) -> CookieSession {
-    CookieSession::private(&[0; 32])
+    CookieSession::private(utils::SECRET_KEY.as_bytes())
         .name(name)
         .http_only(false)
         .path("/")
