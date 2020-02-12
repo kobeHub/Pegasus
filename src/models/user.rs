@@ -11,8 +11,10 @@ pub struct User {
 
 impl User {
     pub fn from_details<S, T>(email: S, name: S, pwd: T) -> Self
-    where S: Into<String>,
-          T: Into<String> {
+    where
+        S: Into<String>,
+        T: Into<String>,
+    {
         User {
             email: email.into(),
             name: name.into(),

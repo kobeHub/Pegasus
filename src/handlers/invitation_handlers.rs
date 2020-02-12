@@ -1,36 +1,34 @@
-use actix_web::{error::BlockingError, web, HttpResponse, Result};
+use actix_web::{web, HttpResponse};
 use diesel::prelude::*;
-use futures::Future;
 
 use crate::errors::ServiceError;
-use crate::models::Pool;
 use crate::models::invitation::Invitation;
+use crate::models::Pool;
 
-pub async fn post_invitation(invit_data: web::Json<InvitationData>,
-                             pool: web::Data<Pool>)
-                             -> Result<HttpResponse, ServiceError> {
+pub async fn post_invitation(
+    invit_data: web::Json<InvitationData>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
     // run diesel block mode
-    web::block(move || create_invitation(invit_data.email, pool)
-               .and_then(|_| Ok(HttpResponse::Ok().json("Invitations send successfully")))
-               .or_else(|err| {
-                   match err {
-                       BlockingError::Error(service_error) => Err(service_error),
-                       BlockingError::Canceled => Err(ServiceError::InternalServerError),
-                   }
-               }))
+    // web::block(move || create_invitation(invit_data.email, pool)?
+    //           .and_then(|_| Ok(HttpResponse::Ok().json("Invitations send successfully")))
+    //           ).await
+
+    create_invitation(&invit_data.email, pool).and(Ok(HttpResponse::Ok().json(format!(
+        "Invitation for {} send successfully",
+        &invit_data.email
+    ))))
 }
 
 // Query info and send invitations
-fn create_invitation(eml: String, pool: web::Data<Pool>)
-                     -> Result<(), BlockingError<ServiceError>> {
+fn create_invitation(eml: &str, pool: web::Data<Pool>) -> Result<(), ServiceError> {
     let invitation = dbg!(query(eml, pool)?);
 
     Ok(())
 }
 
 // Diesel query
-fn query(eml: String, pool: web::Data<Pool>)
-         -> Result<Invitation, ServiceError> {
+fn query(eml: &str, pool: web::Data<Pool>) -> Result<Invitation, ServiceError> {
     use crate::utils::schema::invitations::dsl::invitations;
 
     let info: Invitation = eml.into();

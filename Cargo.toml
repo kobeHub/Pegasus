@@ -19,6 +19,7 @@ derive_more = "0.99"
 diesel = { version="1.4.3", features=["postgres", "uuidv07", "r2d2", "chrono"] }
 dotenv = "0.15.0"
 env_logger = "0.7.1"
+failure = "0.1.6"
 lazy_static = "1.0.3"
 listenfd = "0.3"
 r2d2 = "0.8.8"

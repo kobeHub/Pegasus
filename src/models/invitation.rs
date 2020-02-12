@@ -11,7 +11,9 @@ pub struct Invitation {
 /// Any type impl `Into<String>` can create `Invitation`
 /// default invitation expires after 24 hours
 impl<T> From<T> for Invitation
-where T: Into<String> {
+where
+    T: Into<String>,
+{
     fn from(email: T) -> Self {
         Invitation {
             id: uuid::Uuid::new_v4(),

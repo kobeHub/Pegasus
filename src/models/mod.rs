@@ -1,5 +1,5 @@
 pub mod db;
-pub mod user;
 pub mod invitation;
+pub mod user;
 
 pub use db::Pool;

@@ -6,25 +6,29 @@ extern crate serde_derive;
 
 extern crate derive_more;
 
-use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
+use actix_web::{App, HttpServer};
 
 use dotenv;
 use env_logger;
 use listenfd::ListenFd;
 
 mod errors;
-mod router;
+mod handlers;
 mod models;
 mod mw;
+mod router;
 mod utils;
-mod handlers;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
 
-    std::env::set_var("RUST_LOG", "actix_web=info, actix_server=info");
+    std::env::set_var(
+        "RUST_LOG",
+        "actix_web=info, actix_server=info, service_error=debug",
+    );
+    std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
 

@@ -1624,6 +1624,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "env_logger 0.7.1",
+ "failure",
  "futures 0.3.4",
  "lazy_static",
  "listenfd",

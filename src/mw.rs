@@ -1,5 +1,5 @@
-use actix_session::CookieSession;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
+use actix_session::CookieSession;
 
 use crate::utils;
 
@@ -21,6 +21,6 @@ pub fn build_identity(domain: &str, day: i64) -> IdentityService<CookieIdentityP
             .path("/")
             .domain(domain)
             .max_age(day * 24 * 60 * 60)
-            .secure(false)
+            .secure(false),
     )
 }
