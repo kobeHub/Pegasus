@@ -2,4 +2,4 @@ pub mod db;
 pub mod invitation;
 pub mod user;
 
-pub use db::Pool;
+pub use db::DbConn;

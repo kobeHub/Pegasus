@@ -4,7 +4,14 @@ extern crate diesel;
 #[macro_use]
 extern crate serde_derive;
 
+#[macro_use]
+extern crate diesel_migrations;
+
+#[macro_use]
+extern crate log;
+
 extern crate derive_more;
+extern crate argon2;
 
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
@@ -30,14 +37,13 @@ async fn main() -> std::io::Result<()> {
     );
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
+    models::db::init();
     let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
 
     let mut listenfd = ListenFd::from_env();
-    let pool = models::db::build_pool();
 
     let mut server = HttpServer::new(move || {
         App::new()
-            .data(pool.clone())
             .wrap(Logger::new("Status:%s  Req:\"%r\" %a Time:%Dms"))
             .wrap(mw::build_session("actix_session", 1))
             .wrap(mw::build_identity(&domain, 1))

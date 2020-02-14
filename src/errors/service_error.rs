@@ -11,6 +11,7 @@ use actix_web::http::{header, StatusCode};
 use actix_web::{error::ResponseError, HttpResponse};
 use derive_more::Display;
 use diesel::result::{DatabaseErrorKind, Error as DBError};
+use serde_json::json;
 use std::convert::From;
 use uuid::parser::ParseError;
 
@@ -35,7 +36,7 @@ impl ResponseError for ServiceError {
     fn error_response(&self) -> HttpResponse {
         ResponseBuilder::new(self.status_code())
             .set_header(header::CONTENT_TYPE, "application/json")
-            .body(self.to_string())
+            .json(json!({"msg": self.to_string()}))
     }
 
     fn status_code(&self) -> StatusCode {

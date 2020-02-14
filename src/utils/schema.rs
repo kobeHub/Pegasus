@@ -7,12 +7,17 @@ table! {
 }
 
 table! {
-    users (email) {
+    users (id) {
+        id -> Uuid,
         email -> Varchar,
         name -> Varchar,
-        hash -> Varchar,
+        password -> Text,
         created_at -> Timestamp,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
-allow_tables_to_appear_in_same_query!(invitations, users,);
+allow_tables_to_appear_in_same_query!(
+    invitations,
+    users,
+);
