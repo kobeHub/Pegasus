@@ -1,7 +1,7 @@
 use actix_session::Session;
 use actix_web::{get, web, HttpResponse, Result, Scope};
 
-use crate::handlers::invitation_handlers;
+use crate::handlers::{invitation_handlers, user_handlers};
 use crate::utils::JSON_PARSE_CONFIG;
 
 #[get("/")]
@@ -35,4 +35,5 @@ pub fn api_scope() -> Scope {
             "/invitations",
             web::post().to(invitation_handlers::post_invitation),
         )
+        .service(user_handlers::user_scope())
 }

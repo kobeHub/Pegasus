@@ -1,26 +1,14 @@
-use actix_identity::{CookieIdentityPolicy, IdentityService};
-use actix_session::CookieSession;
+use actix_redis::RedisSession;
+use time::Duration;
 
-use crate::utils;
+use crate::utils::{SECRET_KEY};
 
-// Set session middleware
-pub fn build_session(name: &str, day: i64) -> CookieSession {
-    CookieSession::private(utils::SECRET_KEY.as_bytes())
-        .name(name)
-        .http_only(false)
-        .path("/")
-        .max_age(day * 24 * 60 * 60)
-        .secure(false)
-}
+// Use redis as session storge
+pub fn redis_session(day: i64, domain: &str) -> RedisSession {
+    let redis_host = std::env::var("REDIS_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let redis_port = std::env::var("REDIS_PORT").unwrap_or_else(|_| "6379".to_string());
 
-// Build identity service middleware
-pub fn build_identity(domain: &str, day: i64) -> IdentityService<CookieIdentityPolicy> {
-    IdentityService::new(
-        CookieIdentityPolicy::new(utils::SECRET_KEY.as_bytes())
-            .name("auth")
-            .path("/")
-            .domain(domain)
-            .max_age(day * 24 * 60 * 60)
-            .secure(false),
-    )
+    RedisSession::new(format!("{}:{}", redis_host, redis_port), SECRET_KEY.as_bytes())
+        .cookie_max_age(Duration::days(day))
+        .cookie_domain(domain)
 }

@@ -1,5 +1,8 @@
 use actix_http::http::StatusCode;
+use actix_web::error::Error as ActixError;
 use actix_web::{HttpResponse, ResponseError};
+use lettre_email::error::Error as ClientError;
+use lettre::smtp::error::Error as SmtpError;
 use std::fmt;
 use diesel::result::Error as DBError;
 use serde_json::json;
@@ -30,10 +33,23 @@ impl ApiError {
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
         match error {
-            DBError::DatabaseError(_, err) => ApiError::new(409, err.message().to_string()),
+            DBError::DatabaseError(_, err) => ApiError::new(409,
+                                                            err.message().to_string()),
             DBError::NotFound => ApiError::new(404, "Record not found".to_owned()),
             err => ApiError::new(500, format!("Diesel error: {}", err)),
         }
+    }
+}
+
+impl From<SmtpError> for ApiError {
+    fn from(error: SmtpError) -> ApiError {
+        ApiError::new(500, format!("Email smtp service: {}", error.to_string()))
+    }
+}
+
+impl From<ClientError> for ApiError {
+    fn from(error: ClientError) -> ApiError {
+        ApiError::new(500, format!("Email client service: {}", error.to_string()))
     }
 }
 
@@ -48,5 +64,11 @@ impl ResponseError for ApiError {
             Ok(code) => code,
             Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
+    }
+}
+
+impl From<ActixError> for ApiError {
+    fn from(error: ActixError) -> ApiError {
+        ApiError::new(500, error.to_string())
     }
 }

@@ -1,5 +1,6 @@
 use argon2::{Config};
 use chrono::{NaiveDateTime, Utc};
+use diesel::dsl::{exists, select};
 use diesel::prelude::*;
 use rand::Rng;
 use uuid::Uuid;
@@ -20,7 +21,7 @@ pub struct User {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Serialize, Deserialize, AsChangeset)]
+#[derive(Clone, Serialize, Deserialize, AsChangeset)]
 #[table_name = "users"]
 pub struct UserInfo {
     pub id: Option<Uuid>,
@@ -39,13 +40,23 @@ impl User {
         Ok(user)
     }
 
-    pub fn find_by_email(eml: String) -> Result<Self, ApiError> {
+    pub fn find_by_email(eml: &str) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
         let user = users::table
             .filter(users::email.eq(eml))
             .first(&conn)?;
         Ok(user)
+    }
+
+    pub fn exist(eml: &str) -> Result<bool, ApiError> {
+        let conn = db::connection()?;
+
+        let res = select(exists(users::table
+                                .filter(users::email.eq(eml))))
+            .get_result(&conn)?;
+
+        Ok(res)
     }
 
     pub fn create(info: UserInfo) -> Result<Self, ApiError> {
@@ -100,8 +111,8 @@ impl User {
         Ok(())
     }
 
-    pub fn verify_password(hash: &str, password: &str) -> Result<bool, ApiError> {
-        argon2::verify_encoded(hash, password.as_bytes())
+    pub fn verify_password(&self, password: &str) -> Result<bool, ApiError> {
+        argon2::verify_encoded(&self.password, password.as_bytes())
             .map_err(|e| {
                 ApiError::new(500, format!("Failed to verfify password: {}", e))
             })

@@ -25,6 +25,7 @@ mod handlers;
 mod models;
 mod mw;
 mod router;
+mod services;
 mod utils;
 
 #[actix_rt::main]
@@ -38,6 +39,7 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     models::db::init();
+
     let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
 
     let mut listenfd = ListenFd::from_env();
@@ -45,8 +47,7 @@ async fn main() -> std::io::Result<()> {
     let mut server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::new("Status:%s  Req:\"%r\" %a Time:%Dms"))
-            .wrap(mw::build_session("actix_session", 1))
-            .wrap(mw::build_identity(&domain, 1))
+            .wrap(mw::redis_session(1, &domain))
             .service(router::healthy)
             .service(router::api_scope())
     });
