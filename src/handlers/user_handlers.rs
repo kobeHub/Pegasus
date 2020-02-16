@@ -4,7 +4,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::errors::ApiError;
-use crate::models::user::{User, UserInfo};
+use crate::models::user::{User, UserInfo, LoginInfo};
 
 #[post("/register")]
 async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
@@ -18,7 +18,7 @@ async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
 }
 
 #[post("/login")]
-async fn sign_in(info: web::Json<UserInfo>,
+async fn sign_in(info: web::Json<LoginInfo>,
                  sess: Session) ->  Result<HttpResponse, ApiError> {
     let credentials = info.into_inner();
 

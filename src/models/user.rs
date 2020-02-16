@@ -30,6 +30,12 @@ pub struct UserInfo {
     pub password: String,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct LoginInfo {
+    pub email: String,
+    pub password: String,
+}
+
 impl User {
     pub fn find(id: Uuid) -> Result<Self, ApiError> {
         let conn = db::connection()?;
