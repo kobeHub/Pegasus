@@ -11,6 +11,7 @@ pub struct Invitation {
     pub id: uuid::Uuid,
     pub email: String,
     pub expires_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
 }
 
 /// Any type impl `Into<String>` can create `Invitation`
@@ -20,10 +21,12 @@ where
     T: Into<String>,
 {
     fn from(email: T) -> Self {
+        let now = Utc::now().naive_utc();
         Invitation {
             id: uuid::Uuid::new_v4(),
             email: email.into(),
-            expires_at: Utc::now().naive_utc() + chrono::Duration::hours(24),
+            expires_at: now + chrono::Duration::hours(24),
+            created_at: now,
         }
     }
 }
@@ -38,6 +41,22 @@ impl Invitation {
             .get_result(&conn)?;
 
         Ok(inserted)
+    }
+
+    /// Count records within 24 hours
+    pub fn count_one_day(eml: &str) ->
+        Result<i64, ApiError> {
+        let conn = db::connection()?;
+
+        let to = Utc::now().naive_utc();
+        let from = to - chrono::Duration::hours(24);
+        let results: i64 = invitations::table
+                .filter(invitations::email.eq(eml))
+                .filter(invitations::created_at.ge(from))
+                .filter(invitations::created_at.le(to))
+                .count()
+                .get_result(&conn)?;
+        Ok(results)
     }
 }
 

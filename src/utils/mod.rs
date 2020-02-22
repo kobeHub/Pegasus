@@ -7,3 +7,4 @@ pub use util::SENDING_EMAIL_ADDRESS;
 pub use util::SENDING_EMAIL_PASSWD;
 pub use util::SMTP_SERVER_ADDR;
 pub use util::ORGANISE_NAME;
+pub use util::DOMAIN;

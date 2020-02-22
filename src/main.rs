@@ -28,6 +28,8 @@ mod router;
 mod services;
 mod utils;
 
+use utils::DOMAIN;
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
@@ -40,14 +42,12 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
     models::db::init();
 
-    let domain = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
-
     let mut listenfd = ListenFd::from_env();
 
     let mut server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::new("Status:%s  Req:\"%r\" %a Time:%Dms"))
-            .wrap(mw::redis_session(1, &domain))
+            .wrap(mw::redis_session(1, DOMAIN.as_str()))
             .service(router::healthy)
             .service(router::api_scope())
     });
