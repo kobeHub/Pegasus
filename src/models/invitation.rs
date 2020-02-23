@@ -1,5 +1,6 @@
 use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
+use uuid::Uuid;
 
 use crate::utils::schema::invitations;
 use crate::errors::ApiError;
@@ -57,6 +58,16 @@ impl Invitation {
                 .count()
                 .get_result(&conn)?;
         Ok(results)
+        }
+
+    pub fn is_expired(id: &Uuid) -> Result<bool, ApiError> {
+        let conn = db::connection()?;
+
+        let now = Utc::now().naive_utc();
+        let info: Invitation = invitations::table
+            .filter(invitations::id.eq(id))
+            .first(&conn)?;
+        Ok(info.expires_at < now)
     }
 }
 

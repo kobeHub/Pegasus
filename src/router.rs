@@ -31,9 +31,6 @@ pub fn api_scope() -> Scope {
             web::get().to(|| HttpResponse::Ok().body("Pegasus is healthy!\n")),
         )
         .route("/sess", web::get().to(sess_usage))
-        .route(
-            "/invitations",
-            web::post().to(invitation_handlers::post_invitation),
-        )
+        .service(invitation_handlers::invitation_scope())
         .service(user_handlers::user_scope())
 }

@@ -1,11 +1,13 @@
-use actix_web::{web, HttpResponse};
+use actix_web::{web, post, HttpResponse, Scope};
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::errors::ApiError;
 use crate::models::invitation::{Invitation, InvitationData};
 use crate::services::email_service;
 
-pub async fn post_invitation(
+#[post("/post")]
+async fn post_invitation(
     invit_data: web::Json<InvitationData>,
 ) -> Result<HttpResponse, ApiError> {
     let cnt = Invitation::count_one_day(&invit_data.email)?;
@@ -21,4 +23,22 @@ pub async fn post_invitation(
              "Invitation for {} send successfully",
              &invit_data.email
      )})))
+}
+
+#[derive(Deserialize)]
+struct ExpireInfo(Uuid);
+
+#[post("/expire")]
+async fn is_expired(info: web::Json<ExpireInfo>) -> Result<HttpResponse, ApiError> {
+    if Invitation::is_expired(&info.into_inner().0)? {
+        Err(ApiError::new(401, "The invitation is expired".to_owned()))
+    } else {
+        Ok(HttpResponse::Ok().finish())
+    }
+}
+
+pub fn invitation_scope() -> Scope {
+    web::scope("/invitaions")
+        .service(post_invitation)
+        .service(is_expired)
 }
