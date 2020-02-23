@@ -1,6 +1,7 @@
 use actix_web::{web, post, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
+use std::str::FromStr;
 
 use crate::errors::ApiError;
 use crate::models::invitation::{Invitation, InvitationData};
@@ -26,19 +27,30 @@ async fn post_invitation(
 }
 
 #[derive(Deserialize)]
-struct ExpireInfo(Uuid);
+struct ExpireInfo {
+    pub id: String,
+}
 
 #[post("/expire")]
 async fn is_expired(info: web::Json<ExpireInfo>) -> Result<HttpResponse, ApiError> {
-    if Invitation::is_expired(&info.into_inner().0)? {
-        Err(ApiError::new(401, "The invitation is expired".to_owned()))
+    let info = Uuid::from_str(&info.id)
+        .map_err(|err| ApiError::new(500, format!("Parse uuid: {}", err)))?;
+
+    if Invitation::is_expired(&info)? {
+        Ok(HttpResponse::Ok().json(json!({
+            "expire": true
+        })))
     } else {
-        Ok(HttpResponse::Ok().finish())
+        Ok(HttpResponse::Ok().json(json!({
+            "expire": false
+        })))
     }
 }
 
 pub fn invitation_scope() -> Scope {
-    web::scope("/invitaions")
+    web::scope("/invitations")
         .service(post_invitation)
-        .service(is_expired)
+
+        .service(is_expired
+        )
 }
