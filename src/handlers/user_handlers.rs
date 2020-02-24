@@ -18,7 +18,7 @@ async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
         let _user = User::create(info.into_inner())?;
         Ok(HttpResponse::Ok().json(json!({
             "status": true,
-            "msg": "Register successfully!",
+            "msg": "Sign up successfully!",
         })))
     }
 }
