@@ -47,10 +47,21 @@ async fn is_expired(info: web::Json<ExpireInfo>) -> Result<HttpResponse, ApiErro
     }
 }
 
+type EmailInfo = ExpireInfo;
+#[post("/email")]
+async fn get_email(info: web::Json<EmailInfo>) -> Result<HttpResponse, ApiError> {
+    let info = Uuid::from_str(&info.id)
+        .map_err(|err| ApiError::new(500, format!("Parse uuid: {}", err)))?;
+
+    let res: String = Invitation::get_email(&info)?;
+    Ok(HttpResponse::Ok().json(json!({
+        "email": res
+    })))
+}
+
 pub fn invitation_scope() -> Scope {
     web::scope("/invitations")
         .service(post_invitation)
-
-        .service(is_expired
-        )
+        .service(is_expired)
+        .service(get_email)
 }

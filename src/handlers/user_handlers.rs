@@ -10,10 +10,16 @@ use crate::models::user::{User, UserInfo, LoginInfo};
 async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
     if User::exist(&info.email)? {
         Ok(HttpResponse::Ok().json(
-            json!({"msg":format!("User with {} exists already!", info.email)})))
+            json!({
+                "status": false,
+                "msg":format!("User with {} exists already!", info.email)}
+            )))
     } else {
-        let user = User::create(info.into_inner())?;
-        Ok(HttpResponse::Ok().json(user))
+        let _user = User::create(info.into_inner())?;
+        Ok(HttpResponse::Ok().json(json!({
+            "status": true,
+            "msg": "Register successfully!",
+        })))
     }
 }
 

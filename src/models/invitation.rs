@@ -69,6 +69,15 @@ impl Invitation {
             .first(&conn)?;
         Ok(info.expires_at < now)
     }
+
+    pub fn get_email(id: &Uuid) -> Result<String, ApiError> {
+        let conn = db::connection()?;
+
+        let info: Invitation = invitations::table
+            .filter(invitations::id.eq(id))
+            .first(&conn)?;
+        Ok(info.email)
+    }
 }
 
 /// Struct to hold user sent data

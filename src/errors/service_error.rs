@@ -26,6 +26,7 @@ pub enum ServiceError {
     #[display(fmt = "Pegasus BadRequest: {}", _0)]
     BadRequest(String),
 
+    #[allow(dead_code)]
     #[display(fmt = "Pegasus Unauthorized")]
     Unauthorized,
 }

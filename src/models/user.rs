@@ -61,7 +61,6 @@ impl User {
         let res = select(exists(users::table
                                 .filter(users::email.eq(eml))))
             .get_result(&conn)?;
-
         Ok(res)
     }
 
