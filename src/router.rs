@@ -1,7 +1,7 @@
 use actix_session::Session;
 use actix_web::{get, web, HttpResponse, Result, Scope};
 
-use crate::handlers::{invitation_handlers, user_handlers};
+use crate::handlers::{invitation_handlers, user_handlers, node_handlers};
 use crate::utils::JSON_PARSE_CONFIG;
 
 #[get("/")]
@@ -25,12 +25,13 @@ async fn sess_usage(session: Session) -> Result<HttpResponse> {
 pub fn api_scope() -> Scope {
     web::scope("/api")
         // Early Reponse to json parse error
-        .app_data(JSON_PARSE_CONFIG.clone())
+        .app_data(&JSON_PARSE_CONFIG)
         .route(
             "/",
             web::get().to(|| HttpResponse::Ok().body("Pegasus is healthy!\n")),
         )
         .route("/sess", web::get().to(sess_usage))
+        .route("/nodes", web::get().to(node_handlers::get_node_info))
         .service(invitation_handlers::invitation_scope())
         .service(user_handlers::user_scope())
 }

@@ -7,6 +7,8 @@ use std::fmt;
 use diesel::result::Error as DBError;
 use serde_json::json;
 
+use kube::Error as KubeError;
+
 use std::convert::From;
 
 #[derive(Debug, Deserialize)]
@@ -70,5 +72,11 @@ impl ResponseError for ApiError {
 impl From<ActixError> for ApiError {
     fn from(error: ActixError) -> ApiError {
         ApiError::new(500, error.to_string())
+    }
+}
+
+impl From<KubeError> for ApiError {
+    fn from(error: KubeError) -> ApiError {
+        ApiError::new(500, format!("kube error: {}", error.to_string()))
     }
 }

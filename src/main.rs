@@ -36,7 +36,7 @@ async fn main() -> std::io::Result<()> {
 
     std::env::set_var(
         "RUST_LOG",
-        "actix_web=info, actix_server=info, service_error=debug",
+        "actix_web=info,actix_server=info,service_error=debug,kube=trace",
     );
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
