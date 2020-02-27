@@ -38,15 +38,5 @@ pub async fn get_nodes() -> Result<Vec<String>, ApiError> {
                 object.metadata.labels)})
         .collect::<Vec<_>>();
 
-    /*
-    let cloned = rf.clone();
-    tokio::spawn(async move {
-        loop {
-            if let Err(e) = cloned.poll().await {
-                warn!("Kube ppoll error: {}", e)
-            }
-        }
-    });*/
-
     Ok(results)
 }
