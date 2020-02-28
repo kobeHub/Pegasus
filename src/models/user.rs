@@ -9,6 +9,18 @@ use crate::errors::ApiError;
 use crate::utils::schema::users;
 use super::db;
 
+/// User roles to use k8s `RBAC`, includes 3 level
+/// `ClusterAdmin` control all the resources of the cluster
+/// `DepartmentAdmin` control all the lessees in the department
+/// Every user has one spefic role.
+#[derive(Clone, DbEnum, Debug, Serialize, Deserialize)]
+pub enum ClusterRole {
+    ClusterAdmin,
+    DepartmentAdmin,
+    Lessee
+}
+
+/// General user model
 #[derive(Debug, Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "users"]
 pub struct User {
@@ -17,10 +29,13 @@ pub struct User {
     pub name: String,
     #[serde(skip_serializing)]
     pub password: String,
+    pub role: ClusterRole,
+    pub belong_to: Option<i32>,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
 }
 
+/// Json parse data of `User`
 #[derive(Clone, Serialize, Deserialize, AsChangeset)]
 #[table_name = "users"]
 pub struct UserInfo {
@@ -28,6 +43,8 @@ pub struct UserInfo {
     pub email: String,
     pub name: String,
     pub password: String,
+    pub role: ClusterRole,
+    pub belong_to: Option<i32>
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -135,6 +152,8 @@ impl From<UserInfo> for User {
             email: info.email,
             name: info.name,
             password: info.password,
+            role: info.role,
+            belong_to: info.belong_to,
             created_at: Utc::now().naive_utc(),
             updated_at: None,
         }

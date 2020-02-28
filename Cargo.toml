@@ -16,6 +16,7 @@ actix-web = "2.0.0"
 chrono = { version="0.4.10", features=["serde"] }
 derive_more = "0.99"
 diesel = { version="1.4.3", features=["postgres", "uuidv07", "r2d2", "chrono"] }
+diesel-derive-enum = { version="0.4", features = ["postgres"] }
 diesel_migrations = "1.4.0"
 dotenv = "0.15.0"
 env_logger = "0.7.1"
