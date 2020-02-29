@@ -1,12 +1,13 @@
 use futures::executor::block_on;
 
 use kube::{
-    api::{Api},
+    api::{Api, ListParams, PostParams},
     client::APIClient,
     config,
     runtime::Reflector
 };
 use lazy_static::{lazy_static};
+use serde_json::json;
 
 use std::vec::Vec;
 
@@ -21,22 +22,26 @@ lazy_static! {
 }
 
 pub async fn get_nodes() -> Result<Vec<String>, ApiError> {
-    let resource = Api::v1Node(KUBE_CLIENT.clone());
-    let rf = Reflector::new(resource)
-    // .labels("kubernetes.io/lifecycle=spot")
-        .timeout(10)
-        .init()
-        .await?;
-
-    let results = rf
-        .state()
+    let nodes = Api::v1Node(KUBE_CLIENT.clone());
+    let results = nodes
+        .list(&ListParams::default())
         .await?
         .into_iter()
-        .map(|object| {
-        format!("Node:{}, labels:{:?}",
-                object.metadata.name,
-                object.metadata.labels)})
-        .collect::<Vec<_>>();
-
+        .map(|x| format!("{}: {}", x.metadata.name, x.metadata.labels["pegasus-role"]))
+        .collect();
     Ok(results)
+}
+
+pub async fn create_ns<T>(ns: T) -> Result<String, ApiError>
+where
+    T: Into<String>
+{
+    let namespace = Api::v1Namespace(KUBE_CLIENT.clone());
+    let res = namespace
+        .create(&PostParams::default(), serde_json::to_vec(&json!({
+            "metadata": {"name": ns.into()}
+        }))?)
+        .await?;
+        //.map(|x| format!("active_deadline_time: {}", x.spec));
+    Ok(format!("{}", res.metadata.name))
 }

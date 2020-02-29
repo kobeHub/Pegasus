@@ -6,6 +6,7 @@ use lettre::smtp::error::Error as SmtpError;
 use std::fmt;
 use diesel::result::Error as DBError;
 use serde_json::json;
+use serde_json::error::Error as SerdeError;
 
 use kube::Error as KubeError;
 
@@ -78,5 +79,11 @@ impl From<ActixError> for ApiError {
 impl From<KubeError> for ApiError {
     fn from(error: KubeError) -> ApiError {
         ApiError::new(500, format!("kube error: {}", error.to_string()))
+    }
+}
+
+impl From<SerdeError> for ApiError {
+    fn from(error: SerdeError) -> ApiError {
+        ApiError::new(500, format!("Serde error: {}", error))
     }
 }

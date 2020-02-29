@@ -2,7 +2,7 @@ use actix_session::Session;
 use actix_web::{get, web, HttpResponse, Result, Scope};
 
 use crate::handlers::{invitation_handlers, user_handlers,
-                      node_handlers, depart_handlers};
+                      cluster_admin_handlers, depart_handlers};
 use crate::utils::JSON_PARSE_CONFIG;
 
 #[get("/")]
@@ -32,8 +32,8 @@ pub fn api_scope() -> Scope {
             web::get().to(|| HttpResponse::Ok().body("Pegasus is healthy!\n")),
         )
         .route("/sess", web::get().to(sess_usage))
-        .route("/nodes", web::get().to(node_handlers::get_node_info))
         .service(invitation_handlers::invitation_scope())
         .service(user_handlers::user_scope())
         .service(depart_handlers::department_scope())
+        .service(cluster_admin_handlers::cluster_admin_scope())
 }
