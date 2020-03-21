@@ -40,6 +40,7 @@ async fn sign_in(info: web::Json<LoginInfo>,
 
     if is_valid {
         sess.set("user_id", user.id)?;
+        sess.set("cluster_role", &user.role)?;
         sess.renew();
 
         Ok(HttpResponse::Ok().json(user))
