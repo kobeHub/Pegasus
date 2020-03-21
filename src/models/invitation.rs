@@ -11,21 +11,24 @@ use super::db;
 pub struct Invitation {
     pub id: uuid::Uuid,
     pub email: String,
+    pub department: Option<i32>,
+    pub is_admin: bool,
     pub expires_at: NaiveDateTime,
     pub created_at: NaiveDateTime,
 }
 
 /// Any type impl `Into<String>` can create `Invitation`
 /// default invitation expires after 24 hours
-impl<T> From<T> for Invitation
+impl From<&InvitationData> for Invitation
 where
-    T: Into<String>,
 {
-    fn from(email: T) -> Self {
+    fn from(data: &InvitationData) -> Self {
         let now = Utc::now().naive_utc();
         Invitation {
             id: uuid::Uuid::new_v4(),
-            email: email.into(),
+            email: data.email.clone(),
+            department: data.department,
+            is_admin: data.is_admin,
             expires_at: now + chrono::Duration::hours(24),
             created_at: now,
         }
@@ -33,10 +36,10 @@ where
 }
 
 impl Invitation {
-    pub fn create(eml: &str) -> Result<Invitation, ApiError> {
+    pub fn create(data: &InvitationData) -> Result<Invitation, ApiError> {
         let conn = db::connection()?;
 
-        let info: Invitation = eml.into();
+        let info: Invitation = Invitation::from(data);
         let inserted = diesel::insert_into(invitations::table)
             .values(&info)
             .get_result(&conn)?;
@@ -84,4 +87,6 @@ impl Invitation {
 #[derive(Deserialize)]
 pub struct InvitationData {
     pub email: String,
+    pub department: Option<i32>,
+    pub is_admin: bool,
 }

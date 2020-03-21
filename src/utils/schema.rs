@@ -10,6 +10,8 @@ table! {
     invitations (id) {
         id -> Uuid,
         email -> Varchar,
+        department -> Nullable<Int4>,
+        is_admin -> Bool,
         expires_at -> Timestamp,
         created_at -> Timestamp,
     }
@@ -17,8 +19,9 @@ table! {
 
 table! {
     use crate::models::user::ClusterRoleMapping;
+    use diesel::sql_types::{Uuid, Varchar, Text,
+                            Nullable, Timestamp, Int4};
 
-    use diesel::sql_types::{Uuid, Varchar, Text, Nullable, Int4, Timestamp};
     users (id) {
         id -> Uuid,
         email -> Varchar,
