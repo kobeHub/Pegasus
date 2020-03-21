@@ -2,6 +2,7 @@ table! {
     departments (id) {
         id -> Int4,
         name -> Varchar,
+        admin -> Nullable<Uuid>,
     }
 }
 
@@ -15,10 +16,9 @@ table! {
 }
 
 table! {
-    use diesel::sql_types::{Uuid, Varchar, Text,
-                            Nullable, Int4, Timestamp};
     use crate::models::user::ClusterRoleMapping;
 
+    use diesel::sql_types::{Uuid, Varchar, Text, Nullable, Int4, Timestamp};
     users (id) {
         id -> Uuid,
         email -> Varchar,

@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use uuid::Uuid;
 
 use crate::errors::ApiError;
 use crate::utils::schema::departments;
@@ -9,6 +10,7 @@ use super::db;
 pub struct Department {
     pub id: i32,
     pub name: String,
+    pub admin: Option<Uuid>,
 }
 
 impl Department {
