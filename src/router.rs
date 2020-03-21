@@ -26,7 +26,7 @@ async fn sess_usage(session: Session) -> Result<HttpResponse> {
 pub fn api_scope() -> Scope {
     web::scope("/api")
         // Early Reponse to json parse error
-        .app_data(&JSON_PARSE_CONFIG)
+        .app_data(JSON_PARSE_CONFIG.clone())
         .route(
             "/",
             web::get().to(|| HttpResponse::Ok().body("Pegasus is healthy!\n")),

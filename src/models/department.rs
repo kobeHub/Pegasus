@@ -25,4 +25,14 @@ impl Department {
             .get_result(&conn)?;
         Ok(info)
     }
+
+    pub fn set_admin(&self) -> Result<Department, ApiError> {
+        let conn = db::connection()?;
+
+        let info = diesel::update(departments::table.filter(
+            departments::id.eq(self.id)))
+            .set(departments::admin.eq(self.admin.unwrap()))
+            .get_result(&conn)?;
+        Ok(info)
+    }
 }
