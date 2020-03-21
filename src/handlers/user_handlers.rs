@@ -39,8 +39,9 @@ async fn sign_in(info: web::Json<LoginInfo>,
     let is_valid = user.verify_password(&credentials.password)?;
 
     if is_valid {
+        println!("{:?}", user.id);
         sess.set("user_id", user.id)?;
-        sess.set("cluster_role", &user.role)?;
+        //sess.set("cluster_role", &user.role)?;
         sess.renew();
 
         Ok(HttpResponse::Ok().json(user))
