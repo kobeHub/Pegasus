@@ -6,25 +6,33 @@ use std::str::FromStr;
 
 use crate::errors::ApiError;
 use crate::models::invitation::{Invitation, InvitationData};
-use crate::models::user::ClusterRole;
+use crate::models::user::{ClusterRole, User};
 use crate::services::email_service;
 
 #[post("/post")]
 async fn post_invitation(
     invit_data: web::Json<InvitationData>,
-    sess: Session,
+   /* sess: Session,*/
 ) -> Result<HttpResponse, ApiError> {
-    if let None = sess.get::<Option<ClusterRole>>("cluster_role")? {
+    /*if let None = sess.get::<Option<ClusterRole>>("cluster_role")? {
         return Err(ApiError::new(401, "Unauthorized".to_string()))
     } else if let Some(ClusterRole::Lessee) = sess.get("cluster_role")? {
         return Ok(HttpResponse::Ok().json(json!({
             "status": false,
             "msg": "You're not allowed to invitate membors",
         })))
+}*/
+
+    let data = invit_data.into_inner();
+    // Check user exist
+    if User::exist(&data.email)? {
+        return Ok(HttpResponse::Ok().json(json!({
+            "status": false,
+            "msg": "The user with this email exist",
+        })));
     }
 
     // Send limits
-    let data = invit_data.into_inner();
     let cnt = Invitation::count_one_day(&data.email)?;
     if cnt >= 3 {
         return Ok(HttpResponse::Ok().json(json!({
@@ -66,15 +74,13 @@ async fn is_expired(info: web::Json<ExpireInfo>) -> Result<HttpResponse, ApiErro
 }
 
 type EmailInfo = ExpireInfo;
-#[post("/email")]
+#[post("/get")]
 async fn get_email(info: web::Json<EmailInfo>) -> Result<HttpResponse, ApiError> {
     let info = Uuid::from_str(&info.id)
         .map_err(|err| ApiError::new(500, format!("Parse uuid: {}", err)))?;
 
-    let res: String = Invitation::get_email(&info)?;
-    Ok(HttpResponse::Ok().json(json!({
-        "email": res
-    })))
+    let res = Invitation::get_info(&info)?;
+    Ok(HttpResponse::Ok().json(json!(res)))
 }
 
 pub fn invitation_scope() -> Scope {

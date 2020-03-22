@@ -26,13 +26,21 @@ impl Department {
         Ok(info)
     }
 
-    pub fn set_admin(&self) -> Result<Department, ApiError> {
+    pub fn set_admin(id: i32, admin: &Uuid) -> Result<Department, ApiError> {
         let conn = db::connection()?;
 
         let info = diesel::update(departments::table.filter(
-            departments::id.eq(self.id)))
-            .set(departments::admin.eq(self.admin.unwrap()))
+            departments::id.eq(id)))
+            .set(departments::admin.eq(admin))
             .get_result(&conn)?;
         Ok(info)
+    }
+
+    pub fn list_all() -> Result<Vec<Department>, ApiError> {
+        let conn = db::connection()?;
+
+        let result: Vec<Department> = departments::table
+            .get_results(&conn)?;
+        Ok(result)
     }
 }

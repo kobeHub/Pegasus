@@ -73,13 +73,23 @@ impl Invitation {
         Ok(info.expires_at < now)
     }
 
-    pub fn get_email(id: &Uuid) -> Result<String, ApiError> {
+    pub fn get_info(id: &Uuid) -> Result<Invitation, ApiError> {
         let conn = db::connection()?;
 
         let info: Invitation = invitations::table
             .filter(invitations::id.eq(id))
             .first(&conn)?;
-        Ok(info.email)
+        Ok(info)
+    }
+
+    pub fn set_expire(email: &str) -> Result<(), ApiError> {
+        let conn = db::connection()?;
+
+        let _res: Invitation = diesel::update(invitations::table.filter(
+            invitations::email.eq(email)))
+            .set(invitations::expires_at.eq(Utc::now().naive_utc()))
+            .get_result(&conn)?;
+        Ok(())
     }
 }
 

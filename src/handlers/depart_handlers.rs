@@ -1,4 +1,4 @@
-use actix_web::{web, post, HttpResponse, Scope};
+use actix_web::{web, post, get, HttpResponse, Scope};
 
 use crate::errors::ApiError;
 use crate::models::department::Department;
@@ -22,12 +22,20 @@ async fn update_admin(info: web::Json<Department>) -> Result<HttpResponse, ApiEr
     if let None = info.admin {
         return Err(ApiError::new(400, "Admin field must be speficed".to_string()))
     }
-    let res = info.set_admin()?;
+    let res = Department::set_admin(info.id, &info.admin.unwrap())?;
     Ok(HttpResponse::Ok().json(res))
+}
+
+#[get("/list")]
+async fn list_all() -> Result<HttpResponse, ApiError> {
+    let results = Department::list_all()?;
+
+    Ok(HttpResponse::Ok().json(results))
 }
 
 pub fn department_scope() -> Scope {
     web::scope("/departs")
         .service(create_depart)
         .service(update_admin)
+        .service(list_all)
 }

@@ -4,7 +4,9 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::errors::ApiError;
-use crate::models::user::{User, UserInfo, LoginInfo};
+use crate::models::user::{ClusterRole, User, UserInfo, LoginInfo};
+use crate::models::department::Department;
+use crate::models::invitation::Invitation;
 
 #[post("/register")]
 async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
@@ -15,7 +17,11 @@ async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
                 "msg":format!("User with {} exists already!", info.email)}
             )))
     } else {
-        let _user = User::create(info.into_inner())?;
+        let user = User::create(info.into_inner())?;
+        if let ClusterRole::DepartmentAdmin = user.role {
+            Department::set_admin(user.belong_to.unwrap_or(2), &user.id)?;
+        }
+        Invitation::set_expire(&user.email)?;
         Ok(HttpResponse::Ok().json(json!({
             "status": true,
             "msg": "Sign up successfully!",
