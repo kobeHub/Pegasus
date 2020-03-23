@@ -6,12 +6,13 @@ use crate::models::department::Department;
 #[derive(Deserialize)]
 struct Info {
     pub name: String,
+    pub email: Option<String>,
 }
 
 #[post("/create")]
 async fn create_depart(info: web::Json<Info>) -> Result<HttpResponse, ApiError> {
-    let info = info.into_inner().name;
-    let res = Department::create(info)?;
+    let info = info.into_inner();
+    let res = Department::create(info.name, info.email)?;
     Ok(HttpResponse::Ok().json(res))
 }
 
@@ -26,9 +27,16 @@ async fn update_admin(info: web::Json<Department>) -> Result<HttpResponse, ApiEr
     Ok(HttpResponse::Ok().json(res))
 }
 
-#[get("/list")]
-async fn list_all() -> Result<HttpResponse, ApiError> {
+#[get("/get")]
+async fn get_all() -> Result<HttpResponse, ApiError> {
     let results = Department::list_all()?;
+
+    Ok(HttpResponse::Ok().json(results))
+}
+
+#[get("/list")]
+async fn list_info() -> Result<HttpResponse, ApiError> {
+    let results = Department::list_infos()?;
 
     Ok(HttpResponse::Ok().json(results))
 }
@@ -37,5 +45,6 @@ pub fn department_scope() -> Scope {
     web::scope("/departs")
         .service(create_depart)
         .service(update_admin)
-        .service(list_all)
+        .service(get_all)
+        .service(list_info)
 }
