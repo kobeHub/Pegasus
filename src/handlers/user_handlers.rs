@@ -1,4 +1,4 @@
-use actix_web::{web, post, Scope, HttpResponse};
+use actix_web::{web, post,get, Scope, HttpResponse};
 use actix_session::Session;
 use serde_json::json;
 use uuid::Uuid;
@@ -81,10 +81,19 @@ async fn who_am_i(sess: Session) -> Result<HttpResponse, ApiError> {
     }
 }
 
+#[get("/list/{id}")]
+async fn list_depart_users(info: web::Path<i32>) -> Result<HttpResponse, ApiError> {
+    let infos = User::find_users_in(info.into_inner())?;
+
+    Ok(HttpResponse::Ok().json(infos))
+}
+
+
 pub fn user_scope() -> Scope {
     web::scope("/users")
         .service(register)
         .service(sign_in)
         .service(sign_out)
         .service(who_am_i)
+        .service(list_depart_users)
 }

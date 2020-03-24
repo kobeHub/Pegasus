@@ -72,6 +72,18 @@ impl User {
         Ok(user)
     }
 
+    pub fn find_users_in(depart_id: i32) -> Result<Vec<UserInfo>, ApiError> {
+        let conn = db::connection()?;
+
+        let results: Vec<UserInfo> = users::table
+            .filter(users::belong_to.is_not_null().and(users::belong_to.eq(depart_id)))
+            .get_results(&conn)?
+            .iter()
+            .map(|x| UserInfo::from(x))
+            .collect();
+        Ok(results)
+    }
+
     pub fn exist(eml: &str) -> Result<bool, ApiError> {
         let conn = db::connection()?;
 
@@ -156,6 +168,19 @@ impl From<UserInfo> for User {
             belong_to: info.belong_to,
             created_at: Utc::now().naive_utc(),
             updated_at: None,
+        }
+    }
+}
+
+impl From<&User> for UserInfo {
+    fn from(info: &User) -> Self {
+        UserInfo {
+            id: Some(info.id),
+            email: info.email.clone(),
+            name: info.name.clone(),
+            password: "".to_string(),
+            role: info.role.clone(),
+            belong_to: info.belong_to,
         }
     }
 }
