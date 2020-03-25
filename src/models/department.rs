@@ -87,15 +87,18 @@ impl Department {
             .filter(users::role.eq(ClusterRole::DepartmentAdmin))
             .get_results(&conn)?;
         let departs: Vec<Department> = departments::table
-            .filter(departments::admin.is_not_null())
             .get_results(&conn)?;
         let mut results: Vec<DepartInfo> = Vec::new();
         for depart in departs.iter() {
+            if let None = depart.admin {
+                results.push(DepartInfo::new(depart.id, depart.name.clone(),
+                "N/A".to_owned(), "N/A".to_owned()))
+            }
             for admin in admins.iter() {
-                if depart.id == admin.belong_to.unwrap() {
-                    results.push(DepartInfo::new(depart.id, depart.name.clone(),
-                                  admin.name.clone(), admin.email.clone()))
-                }
+                 if depart.id == admin.belong_to.unwrap() {
+                        results.push(DepartInfo::new(depart.id, depart.name.clone(),
+                                                     admin.name.clone(), admin.email.clone(                        )))
+                    }
             }
         }
         /*

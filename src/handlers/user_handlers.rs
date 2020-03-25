@@ -88,6 +88,12 @@ async fn list_depart_users(info: web::Path<i32>) -> Result<HttpResponse, ApiErro
     Ok(HttpResponse::Ok().json(infos))
 }
 
+#[get("/all")]
+async fn list_users_all() -> Result<HttpResponse, ApiError> {
+    let infos = User::find_users_all()?;
+
+    Ok(HttpResponse::Ok().json(infos))
+}
 
 pub fn user_scope() -> Scope {
     web::scope("/users")
@@ -96,4 +102,5 @@ pub fn user_scope() -> Scope {
         .service(sign_out)
         .service(who_am_i)
         .service(list_depart_users)
+        .service(list_users_all)
 }

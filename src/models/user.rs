@@ -84,6 +84,17 @@ impl User {
         Ok(results)
     }
 
+    pub fn find_users_all() -> Result<Vec<UserInfo>, ApiError> {
+        let conn = db::connection()?;
+
+        let results: Vec<UserInfo> = users::table
+            .get_results(&conn)?
+            .iter()
+            .map(|x| UserInfo::from(x))
+            .collect();
+        Ok(results)
+    }
+
     pub fn exist(eml: &str) -> Result<bool, ApiError> {
         let conn = db::connection()?;
 
