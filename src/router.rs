@@ -1,8 +1,9 @@
 use actix_session::Session;
 use actix_web::{get, web, HttpResponse, Result, Scope};
 
-use crate::handlers::{invitation_handlers, user_handlers,
-                      cluster_admin_handlers, depart_handlers};
+use crate::handlers::{
+    cluster_admin_handlers, depart_handlers, invitation_handlers, user_handlers,
+};
 use crate::utils::JSON_PARSE_CONFIG;
 
 #[get("/")]

@@ -1,18 +1,18 @@
-use lettre_email::EmailBuilder;
 use lettre::smtp::authentication::{Credentials, Mechanism};
 use lettre::smtp::extension::ClientId;
 use lettre::Transport;
+use lettre_email::EmailBuilder;
 
-use lettre::SmtpClient;
 use lettre::smtp::ConnectionReuseParameters;
+use lettre::SmtpClient;
 
 use lazy_static::lazy_static;
 
 use crate::errors::ApiError;
 use crate::models::invitation::Invitation;
-use crate::utils::{DOMAIN, SENDING_EMAIL_ADDRESS,
-                   SENDING_EMAIL_PASSWD,
-                   SMTP_SERVER_ADDR, ORGANISE_NAME};
+use crate::utils::{
+    DOMAIN, ORGANISE_NAME, SENDING_EMAIL_ADDRESS, SENDING_EMAIL_PASSWD, SMTP_SERVER_ADDR,
+};
 
 use std::fs;
 lazy_static! {
@@ -25,7 +25,8 @@ lazy_static! {
 }
 
 pub fn send_email(invit: &Invitation) -> Result<(), ApiError> {
-    let email_contents = EMAIL_TEMPLATE.clone()
+    let email_contents = EMAIL_TEMPLATE
+        .clone()
         .replacen("#", ORGANISE_NAME.as_str(), 1)
         .replacen("#", ORGANISE_NAME.as_str(), 1)
         .replacen("#", DOMAIN.as_str(), 1)

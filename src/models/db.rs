@@ -12,7 +12,8 @@ embed_migrations!();
 
 lazy_static! {
     static ref POOL: Pool = {
-        let database_url = std::env::var("DATABASE_URL").expect("Pegasus: Database url must be set");
+        let database_url =
+            std::env::var("DATABASE_URL").expect("Pegasus: Database url must be set");
 
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         r2d2::Pool::builder()

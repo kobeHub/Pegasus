@@ -13,8 +13,8 @@ extern crate diesel_migrations;
 #[macro_use]
 extern crate log;
 
-extern crate derive_more;
 extern crate argon2;
+extern crate derive_more;
 
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};

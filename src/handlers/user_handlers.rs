@@ -1,21 +1,20 @@
-use actix_web::{web, post,get, Scope, HttpResponse};
 use actix_session::Session;
+use actix_web::{get, post, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::errors::ApiError;
-use crate::models::user::{ClusterRole, User, UserInfo, LoginInfo};
 use crate::models::department::Department;
 use crate::models::invitation::Invitation;
+use crate::models::user::{ClusterRole, LoginInfo, User, UserInfo};
 
 #[post("/register")]
 async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
     if User::exist(&info.email)? {
-        Ok(HttpResponse::Ok().json(
-            json!({
-                "status": false,
-                "msg":format!("User with {} exists already!", info.email)}
-            )))
+        Ok(HttpResponse::Ok().json(json!({
+            "status": false,
+            "msg":format!("User with {} exists already!", info.email)}
+        )))
     } else {
         let user = User::create(info.into_inner())?;
         if let ClusterRole::DepartmentAdmin = user.role {
@@ -30,17 +29,13 @@ async fn register(info: web::Json<UserInfo>) -> Result<HttpResponse, ApiError> {
 }
 
 #[post("/login")]
-async fn sign_in(info: web::Json<LoginInfo>,
-                 sess: Session) ->  Result<HttpResponse, ApiError> {
+async fn sign_in(info: web::Json<LoginInfo>, sess: Session) -> Result<HttpResponse, ApiError> {
     let credentials = info.into_inner();
 
-    let user = User::find_by_email(&credentials.email)
-        .map_err(|err| {
-            match err.status_code {
-                404 => ApiError::new(401, "User doesn't exists".to_owned()),
-                _ => err,
-            }
-        })?;
+    let user = User::find_by_email(&credentials.email).map_err(|err| match err.status_code {
+        404 => ApiError::new(401, "User doesn't exists".to_owned()),
+        _ => err,
+    })?;
 
     let is_valid = user.verify_password(&credentials.password)?;
 

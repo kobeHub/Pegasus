@@ -1,13 +1,13 @@
-use argon2::{Config};
+use argon2::Config;
 use chrono::{NaiveDateTime, Utc};
 use diesel::dsl::{exists, select};
 use diesel::prelude::*;
 use rand::Rng;
 use uuid::Uuid;
 
+use super::db;
 use crate::errors::ApiError;
 use crate::utils::schema::users;
-use super::db;
 
 /// User roles to use k8s `RBAC`, includes 3 level
 /// `ClusterAdmin` control all the resources of the cluster
@@ -17,7 +17,7 @@ use super::db;
 pub enum ClusterRole {
     ClusterAdmin,
     DepartmentAdmin,
-    Lessee
+    Lessee,
 }
 
 /// General user model
@@ -44,7 +44,7 @@ pub struct UserInfo {
     pub name: String,
     pub password: String,
     pub role: ClusterRole,
-    pub belong_to: Option<i32>
+    pub belong_to: Option<i32>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -57,18 +57,14 @@ impl User {
     pub fn find(id: Uuid) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
-        let user = users::table
-            .filter(users::id.eq(id))
-            .first(&conn)?;
+        let user = users::table.filter(users::id.eq(id)).first(&conn)?;
         Ok(user)
     }
 
     pub fn find_by_email(eml: &str) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
-        let user = users::table
-            .filter(users::email.eq(eml))
-            .first(&conn)?;
+        let user = users::table.filter(users::email.eq(eml)).first(&conn)?;
         Ok(user)
     }
 
@@ -76,7 +72,11 @@ impl User {
         let conn = db::connection()?;
 
         let results: Vec<UserInfo> = users::table
-            .filter(users::belong_to.is_not_null().and(users::belong_to.eq(depart_id)))
+            .filter(
+                users::belong_to
+                    .is_not_null()
+                    .and(users::belong_to.eq(depart_id)),
+            )
             .get_results(&conn)?
             .iter()
             .map(|x| UserInfo::from(x))
@@ -98,9 +98,7 @@ impl User {
     pub fn exist(eml: &str) -> Result<bool, ApiError> {
         let conn = db::connection()?;
 
-        let res = select(exists(users::table
-                                .filter(users::email.eq(eml))))
-            .get_result(&conn)?;
+        let res = select(exists(users::table.filter(users::email.eq(eml)))).get_result(&conn)?;
         Ok(res)
     }
 
@@ -134,11 +132,7 @@ impl User {
     pub fn delete(id: Uuid) -> Result<usize, ApiError> {
         let conn = db::connection()?;
 
-        let res = diesel::delete(
-            users::table
-                .filter(users::id.eq(id))
-        )
-            .execute(&conn)?;
+        let res = diesel::delete(users::table.filter(users::id.eq(id))).execute(&conn)?;
 
         Ok(res)
     }
@@ -149,20 +143,15 @@ impl User {
         let config = Config::default();
 
         self.password = argon2::hash_encoded(self.password.as_bytes(), &salt, &config)
-            .map_err(|err| {
-                ApiError::new(500, format!("Failed to hash password: {}", err))
-            })?;
+            .map_err(|err| ApiError::new(500, format!("Failed to hash password: {}", err)))?;
 
         Ok(())
     }
 
     pub fn verify_password(&self, password: &str) -> Result<bool, ApiError> {
         argon2::verify_encoded(&self.password, password.as_bytes())
-            .map_err(|e| {
-                ApiError::new(500, format!("Failed to verfify password: {}", e))
-            })
+            .map_err(|e| ApiError::new(500, format!("Failed to verfify password: {}", e)))
     }
-
 }
 
 impl From<UserInfo> for User {

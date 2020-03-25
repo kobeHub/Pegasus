@@ -1,4 +1,4 @@
-use actix_web::{web, post, get, HttpResponse, Scope};
+use actix_web::{get, post, web, HttpResponse, Scope};
 
 use crate::errors::ApiError;
 use crate::models::department::Department;
@@ -21,7 +21,10 @@ async fn update_admin(info: web::Json<Department>) -> Result<HttpResponse, ApiEr
     let info = info.into_inner();
 
     if let None = info.admin {
-        return Err(ApiError::new(400, "Admin field must be speficed".to_string()))
+        return Err(ApiError::new(
+            400,
+            "Admin field must be speficed".to_string(),
+        ));
     }
     let res = Department::set_admin(info.id, &info.admin.unwrap())?;
     Ok(HttpResponse::Ok().json(res))

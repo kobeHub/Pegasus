@@ -2,9 +2,9 @@ use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::utils::schema::invitations;
-use crate::errors::ApiError;
 use super::db;
+use crate::errors::ApiError;
+use crate::utils::schema::invitations;
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "invitations"]
@@ -19,9 +19,7 @@ pub struct Invitation {
 
 /// Any type impl `Into<String>` can create `Invitation`
 /// default invitation expires after 24 hours
-impl From<&InvitationData> for Invitation
-where
-{
+impl From<&InvitationData> for Invitation {
     fn from(data: &InvitationData) -> Self {
         let now = Utc::now().naive_utc();
         Invitation {
@@ -48,20 +46,19 @@ impl Invitation {
     }
 
     /// Count records within 24 hours
-    pub fn count_one_day(eml: &str) ->
-        Result<i64, ApiError> {
+    pub fn count_one_day(eml: &str) -> Result<i64, ApiError> {
         let conn = db::connection()?;
 
         let to = Utc::now().naive_utc();
         let from = to - chrono::Duration::hours(24);
         let results: i64 = invitations::table
-                .filter(invitations::email.eq(eml))
-                .filter(invitations::created_at.ge(from))
-                .filter(invitations::created_at.le(to))
-                .count()
-                .get_result(&conn)?;
+            .filter(invitations::email.eq(eml))
+            .filter(invitations::created_at.ge(from))
+            .filter(invitations::created_at.le(to))
+            .count()
+            .get_result(&conn)?;
         Ok(results)
-        }
+    }
 
     pub fn is_expired(id: &Uuid) -> Result<bool, ApiError> {
         let conn = db::connection()?;
@@ -85,10 +82,10 @@ impl Invitation {
     pub fn set_expire(email: &str) -> Result<(), ApiError> {
         let conn = db::connection()?;
 
-        let _res: Invitation = diesel::update(invitations::table.filter(
-            invitations::email.eq(email)))
-            .set(invitations::expires_at.eq(Utc::now().naive_utc()))
-            .get_result(&conn)?;
+        let _res: Invitation =
+            diesel::update(invitations::table.filter(invitations::email.eq(email)))
+                .set(invitations::expires_at.eq(Utc::now().naive_utc()))
+                .get_result(&conn)?;
         Ok(())
     }
 }

@@ -1,8 +1,8 @@
-use actix_web::{web, post, HttpResponse, Scope};
 use actix_session::Session;
+use actix_web::{post, web, HttpResponse, Scope};
 use serde_json::json;
-use uuid::Uuid;
 use std::str::FromStr;
+use uuid::Uuid;
 
 use crate::errors::ApiError;
 use crate::models::invitation::{Invitation, InvitationData};
@@ -12,16 +12,16 @@ use crate::services::email_service;
 #[post("/post")]
 async fn post_invitation(
     invit_data: web::Json<InvitationData>,
-   /* sess: Session,*/
+    /* sess: Session,*/
 ) -> Result<HttpResponse, ApiError> {
     /*if let None = sess.get::<Option<ClusterRole>>("cluster_role")? {
-        return Err(ApiError::new(401, "Unauthorized".to_string()))
-    } else if let Some(ClusterRole::Lessee) = sess.get("cluster_role")? {
-        return Ok(HttpResponse::Ok().json(json!({
-            "status": false,
-            "msg": "You're not allowed to invitate membors",
-        })))
-}*/
+            return Err(ApiError::new(401, "Unauthorized".to_string()))
+        } else if let Some(ClusterRole::Lessee) = sess.get("cluster_role")? {
+            return Ok(HttpResponse::Ok().json(json!({
+                "status": false,
+                "msg": "You're not allowed to invitate membors",
+            })))
+    }*/
 
     let data = invit_data.into_inner();
     // Check user exist
@@ -43,13 +43,12 @@ async fn post_invitation(
 
     let info = Invitation::create(&data)?;
     email_service::send_email(&info)?;
-    Ok(HttpResponse::Ok().json(
-        json!({
-            "status": true,
-            "msg": format!(
-             "Invitation for {} send successfully",
-             &data.email
-     )})))
+    Ok(HttpResponse::Ok().json(json!({
+           "status": true,
+           "msg": format!(
+            "Invitation for {} send successfully",
+            &data.email
+    )})))
 }
 
 #[derive(Deserialize)]

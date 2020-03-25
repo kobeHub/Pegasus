@@ -1,10 +1,10 @@
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::errors::ApiError;
-use crate::utils::schema::{departments, users};
 use super::db;
 use super::user::{ClusterRole, User};
+use crate::errors::ApiError;
+use crate::utils::schema::{departments, users};
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "departments"]
@@ -15,11 +15,11 @@ pub struct Department {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct DepartInfo{
+pub struct DepartInfo {
     pub id: i32,
     pub name: String,
     pub admin: String,
-    pub email: String
+    pub email: String,
 }
 
 impl DepartInfo {
@@ -36,7 +36,7 @@ impl DepartInfo {
 impl Department {
     pub fn create<T>(name: T, email: Option<T>) -> Result<Department, ApiError>
     where
-        T: Into<String>
+        T: Into<String>,
     {
         let conn = db::connection()?;
         if let Some(eml) = email {
@@ -50,8 +50,10 @@ impl Department {
             })?;
 
             let info = diesel::insert_into(departments::table)
-                .values(&(departments::name.eq(name.into()),
-                          departments::admin.eq(user.id)))
+                .values(&(
+                    departments::name.eq(name.into()),
+                    departments::admin.eq(user.id),
+                ))
                 .get_result(&conn)?;
             Ok(info)
         } else {
@@ -65,8 +67,7 @@ impl Department {
     pub fn set_admin(id: i32, admin: &Uuid) -> Result<Department, ApiError> {
         let conn = db::connection()?;
 
-        let info = diesel::update(departments::table.filter(
-            departments::id.eq(id)))
+        let info = diesel::update(departments::table.filter(departments::id.eq(id)))
             .set(departments::admin.eq(admin))
             .get_result(&conn)?;
         Ok(info)
@@ -75,8 +76,7 @@ impl Department {
     pub fn list_all() -> Result<Vec<Department>, ApiError> {
         let conn = db::connection()?;
 
-        let result: Vec<Department> = departments::table
-            .get_results(&conn)?;
+        let result: Vec<Department> = departments::table.get_results(&conn)?;
         Ok(result)
     }
 
@@ -86,19 +86,26 @@ impl Department {
         let admins: Vec<User> = users::table
             .filter(users::role.eq(ClusterRole::DepartmentAdmin))
             .get_results(&conn)?;
-        let departs: Vec<Department> = departments::table
-            .get_results(&conn)?;
+        let departs: Vec<Department> = departments::table.get_results(&conn)?;
         let mut results: Vec<DepartInfo> = Vec::new();
         for depart in departs.iter() {
             if let None = depart.admin {
-                results.push(DepartInfo::new(depart.id, depart.name.clone(),
-                "N/A".to_owned(), "N/A".to_owned()))
+                results.push(DepartInfo::new(
+                    depart.id,
+                    depart.name.clone(),
+                    "N/A".to_owned(),
+                    "N/A".to_owned(),
+                ))
             }
             for admin in admins.iter() {
-                 if depart.id == admin.belong_to.unwrap() {
-                        results.push(DepartInfo::new(depart.id, depart.name.clone(),
-                                                     admin.name.clone(), admin.email.clone(                        )))
-                    }
+                if depart.id == admin.belong_to.unwrap() {
+                    results.push(DepartInfo::new(
+                        depart.id,
+                        depart.name.clone(),
+                        admin.name.clone(),
+                        admin.email.clone(),
+                    ))
+                }
             }
         }
         /*

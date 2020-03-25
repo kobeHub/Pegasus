@@ -1,12 +1,12 @@
 use actix_http::http::StatusCode;
 use actix_web::error::Error as ActixError;
 use actix_web::{HttpResponse, ResponseError};
-use lettre_email::error::Error as ClientError;
-use lettre::smtp::error::Error as SmtpError;
-use std::fmt;
 use diesel::result::Error as DBError;
-use serde_json::json;
+use lettre::smtp::error::Error as SmtpError;
+use lettre_email::error::Error as ClientError;
 use serde_json::error::Error as SerdeError;
+use serde_json::json;
+use std::fmt;
 
 use kube::Error as KubeError;
 
@@ -26,18 +26,14 @@ impl fmt::Display for ApiError {
 
 impl ApiError {
     pub fn new(status_code: u16, msg: String) -> ApiError {
-        ApiError {
-            status_code,
-            msg,
-        }
+        ApiError { status_code, msg }
     }
 }
 
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
         match error {
-            DBError::DatabaseError(_, err) => ApiError::new(409,
-                                                            err.message().to_string()),
+            DBError::DatabaseError(_, err) => ApiError::new(409, err.message().to_string()),
             DBError::NotFound => ApiError::new(404, "Record not found".to_owned()),
             err => ApiError::new(500, format!("Diesel error: {}", err)),
         }
@@ -58,8 +54,7 @@ impl From<ClientError> for ApiError {
 
 impl ResponseError for ApiError {
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code())
-            .json(json!({"msg": self.msg}))
+        HttpResponse::build(self.status_code()).json(json!({"msg": self.msg}))
     }
 
     fn status_code(&self) -> StatusCode {

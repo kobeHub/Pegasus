@@ -4,9 +4,9 @@ use kube::{
     api::{Api, ListParams, PostParams},
     client::APIClient,
     config,
-    runtime::Reflector
+    runtime::Reflector,
 };
-use lazy_static::{lazy_static};
+use lazy_static::lazy_static;
 use serde_json::json;
 
 use std::vec::Vec;
@@ -34,14 +34,17 @@ pub async fn get_nodes() -> Result<Vec<String>, ApiError> {
 
 pub async fn create_ns<T>(ns: T) -> Result<String, ApiError>
 where
-    T: Into<String>
+    T: Into<String>,
 {
     let namespace = Api::v1Namespace(KUBE_CLIENT.clone());
     let res = namespace
-        .create(&PostParams::default(), serde_json::to_vec(&json!({
-            "metadata": {"name": ns.into()}
-        }))?)
+        .create(
+            &PostParams::default(),
+            serde_json::to_vec(&json!({
+                "metadata": {"name": ns.into()}
+            }))?,
+        )
         .await?;
-        //.map(|x| format!("active_deadline_time: {}", x.spec));
+    //.map(|x| format!("active_deadline_time: {}", x.spec));
     Ok(format!("{}", res.metadata.name))
 }
