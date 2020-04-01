@@ -33,8 +33,8 @@ async fn delete_ns(info: web::Json<NamespaceInfo>) -> Result<HttpResponse, ApiEr
     })))
 }
 
-pub fn cluster_admin_scope() -> Scope {
-    web::scope("/clusteradmin")
+pub fn kube_test_scope() -> Scope {
+    web::scope("/kubetest")
         // TODO: guard identity
         // .guard()
         .service(get_nodes_info)

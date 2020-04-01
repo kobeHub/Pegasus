@@ -44,4 +44,17 @@ impl Namespace {
              .get_result(&conn)?;
          Ok(result.namespace)
      }
+
+    pub fn get_ns_of(uid: Uuid) -> Result<Vec<String>, ApiError> {
+        let conn = db::connection()?;
+
+        let results: Vec<String> = namespaces::table
+            .filter(namespaces::uid.eq(uid))
+            .filter(namespaces::valid.eq(true))
+            .get_results(&conn)?
+            .iter()
+            .map(|x: &Namespace| x.namespace.clone())
+            .collect();
+        Ok(results)
+    }
 }

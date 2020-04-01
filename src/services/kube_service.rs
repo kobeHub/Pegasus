@@ -49,7 +49,7 @@ where
             },
         },
     }))?;
-    let res = namespace
+    let _res = namespace
         .create(
             &PostParams::default(),
             &ns_obj,
