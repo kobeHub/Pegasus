@@ -1524,9 +1524,9 @@ dependencies = [
 
 [[package]]
 name = "kube"
-version = "0.27.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f31c0b05e875d6f99e2dc839256e488a7cbf6329e93e239dd1f83774570de449"
+checksum = "a8fa9bca20460d25f9a47e861e8479fd4735373be7b7afdaa8859480c8dd6270"
 dependencies = [
  "Inflector",
  "base64 0.11.0",
@@ -1541,7 +1541,6 @@ dependencies = [
  "k8s-openapi",
  "log",
  "openssl",
- "paste",
  "reqwest 0.10.3",
  "serde",
  "serde_derive",
@@ -1550,6 +1549,18 @@ dependencies = [
  "thiserror",
  "time 0.2.7",
  "url 2.1.1",
+]
+
+[[package]]
+name = "kube-derive"
+version = "0.30.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1ed4e029203747ebbb8ccd2d2ca7ec1484a619652231468cdf3aff378f23bc9"
+dependencies = [
+ "Inflector",
+ "proc-macro2",
+ "quote 1.0.2",
+ "syn 1.0.14",
 ]
 
 [[package]]
@@ -1922,28 +1933,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "paste"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63e1afe738d71b1ebab5f1207c055054015427dbfc7bbe9ee1266894156ec046"
-dependencies = [
- "paste-impl",
- "proc-macro-hack",
-]
-
-[[package]]
-name = "paste-impl"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d4dc4a7f6f743211c5aab239640a65091535d97d43d92a52bca435a640892bb"
-dependencies = [
- "proc-macro-hack",
- "proc-macro2",
- "quote 1.0.2",
- "syn 1.0.14",
-]
-
-[[package]]
 name = "pegasus"
 version = "0.1.0"
 dependencies = [
@@ -1965,6 +1954,7 @@ dependencies = [
  "hex",
  "k8s-openapi",
  "kube",
+ "kube-derive",
  "lazy_static",
  "lettre",
  "lettre_email",

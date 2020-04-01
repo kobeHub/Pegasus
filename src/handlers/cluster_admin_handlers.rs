@@ -15,12 +15,22 @@ struct NamespaceInfo {
     pub name: String,
 }
 
-#[post("/namespace")]
+#[post("/createns")]
 async fn create_ns(info: web::Json<NamespaceInfo>) -> Result<HttpResponse, ApiError> {
     let info = &info.into_inner().name;
-    let res: String = kube_service::create_ns(info).await?;
+    kube_service::create_ns(info).await?;
 
-    Ok(HttpResponse::Ok().json(json!({ "data": res })))
+    Ok(HttpResponse::Ok().json(json!({ "status": true })))
+}
+
+#[post("/deletens")]
+async fn delete_ns(info: web::Json<NamespaceInfo>) -> Result<HttpResponse, ApiError> {
+    let info = &info.into_inner().name;
+    let res = kube_service::delete_ns(info).await?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "status": res,
+    })))
 }
 
 pub fn cluster_admin_scope() -> Scope {
@@ -29,4 +39,5 @@ pub fn cluster_admin_scope() -> Scope {
         // .guard()
         .service(get_nodes_info)
         .service(create_ns)
+        .service(delete_ns)
 }

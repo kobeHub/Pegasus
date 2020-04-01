@@ -22,14 +22,14 @@ table! {
         id -> Int4,
         uid -> Uuid,
         namespace -> Varchar,
-        valid -> Nullable<Bool>,
+        valid -> Bool,
     }
 }
 
 table! {
     use crate::models::user::ClusterRoleMapping;
     use diesel::sql_types::{Uuid, Varchar, Text, Nullable,
-                           Int4, Timestamp};
+                            Int4, Timestamp};
 
     users (id) {
         id -> Uuid,
