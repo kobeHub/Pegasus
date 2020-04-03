@@ -65,3 +65,5 @@ pub async fn delete_ns(ns: &str) -> Result<bool, ApiError> {
     // TODO: handle right status
     Ok(result.is_left())
 }
+
+// TODO: Add deploy, service, pod list
