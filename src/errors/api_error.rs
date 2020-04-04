@@ -78,7 +78,7 @@ impl From<KubeError> for ApiError {
                 ApiError::new(ae.code, format!("{}:{}, reason:{}",
                                                ae.status, ae.message, ae.reason))
             },
-            KubeError::SerdeError(e) => Self::from(e),
+            KubeError::SerdeError(e) => ApiError::new(500, format!("Kube serde error: {}", e)),
             _ => ApiError::new(500, format!("kube error: {}", error.to_string())),
         }
     }
