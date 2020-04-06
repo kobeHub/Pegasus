@@ -1,11 +1,11 @@
-use actix_web::{web, get, post, HttpResponse, Scope};
+use actix_web::{get, post, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::errors::ApiError;
-use crate::services::kube_service;
-use crate::models::user::User;
 use crate::models::namespace::Namespace;
+use crate::models::user::User;
+use crate::services::kube_service;
 
 use std::collections::BTreeMap;
 
@@ -23,7 +23,7 @@ async fn get_info(info: web::Query<UserInfo>) -> Result<HttpResponse, ApiError> 
             "status": false,
             "data": "",
             "msg": "The user does not exist",
-        })))
+        })));
     }
 
     let namespaces = Namespace::get_ns_of(&uid)?;
@@ -51,6 +51,5 @@ async fn get_info(info: web::Query<UserInfo>) -> Result<HttpResponse, ApiError> 
 }
 
 pub fn tasks_scope() -> Scope {
-    web::scope("/tasks")
-        .service(get_info)
+    web::scope("/tasks").service(get_info)
 }

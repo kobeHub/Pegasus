@@ -1,10 +1,10 @@
-use actix_web::{web, post, get, HttpResponse, Scope};
+use actix_web::{get, post, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
+use crate::errors::ApiError;
 use crate::models::namespace::{Namespace, NamespaceInfo};
 use crate::models::user::User;
-use crate::errors::ApiError;
 use crate::services::kube_service;
 
 #[post("/create")]
@@ -41,7 +41,5 @@ struct NSInfo {
 }
 
 pub fn ns_scope() -> Scope {
-    web::scope("/ns")
-        .service(create_ns)
-        .service(delete_ns)
+    web::scope("/ns").service(create_ns).service(delete_ns)
 }

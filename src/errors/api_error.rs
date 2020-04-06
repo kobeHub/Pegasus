@@ -74,10 +74,10 @@ impl From<ActixError> for ApiError {
 impl From<KubeError> for ApiError {
     fn from(error: KubeError) -> ApiError {
         match error {
-            KubeError::Api(ae) => {
-                ApiError::new(ae.code, format!("{}:{}, reason:{}",
-                                               ae.status, ae.message, ae.reason))
-            },
+            KubeError::Api(ae) => ApiError::new(
+                ae.code,
+                format!("{}:{}, reason:{}", ae.status, ae.message, ae.reason),
+            ),
             KubeError::SerdeError(e) => ApiError::new(500, format!("Kube serde error: {}", e)),
             _ => ApiError::new(500, format!("kube error: {}", error.to_string())),
         }

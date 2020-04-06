@@ -17,7 +17,7 @@ pub struct Namespace {
 #[derive(Serialize, Deserialize)]
 pub struct NamespaceInfo {
     pub uid: Uuid,
-    pub ns:  String,
+    pub ns: String,
 }
 
 impl Namespace {
@@ -33,17 +33,16 @@ impl Namespace {
             .get_result(&conn)?;
 
         Ok(result)
-     }
+    }
 
-     pub fn delete(id: i32) -> Result<String, ApiError> {
-         let conn = db::connection()?;
+    pub fn delete(id: i32) -> Result<String, ApiError> {
+        let conn = db::connection()?;
 
-         let result: Namespace = diesel::update(namespaces::table.filter(
-             namespaces::id.eq(id)))
-             .set(namespaces::valid.eq(false))
-             .get_result(&conn)?;
-         Ok(result.namespace)
-     }
+        let result: Namespace = diesel::update(namespaces::table.filter(namespaces::id.eq(id)))
+            .set(namespaces::valid.eq(false))
+            .get_result(&conn)?;
+        Ok(result.namespace)
+    }
 
     pub fn get_ns_of(uid: &Uuid) -> Result<Vec<String>, ApiError> {
         let conn = db::connection()?;

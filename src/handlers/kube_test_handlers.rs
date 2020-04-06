@@ -48,7 +48,7 @@ async fn get_svc(info: web::Query<NamespaceInfo>) -> Result<HttpResponse, ApiErr
 }
 
 #[get("/pod")]
-async fn get_pod(info: web::Query<NamespaceInfo>)  -> Result<HttpResponse, ApiError> {
+async fn get_pod(info: web::Query<NamespaceInfo>) -> Result<HttpResponse, ApiError> {
     let ns = info.into_inner().name;
     let results = kube_service::get_pod_within(&ns).await?;
     Ok(HttpResponse::Ok().json(results))

@@ -98,16 +98,14 @@ impl User {
     pub fn exist(eml: &str) -> Result<bool, ApiError> {
         let conn = db::connection()?;
 
-        let res = select(exists(users::table.filter(users::email.eq(eml))))
-            .get_result(&conn)?;
+        let res = select(exists(users::table.filter(users::email.eq(eml)))).get_result(&conn)?;
         Ok(res)
     }
 
     pub fn exist_id(id: &Uuid) -> Result<bool, ApiError> {
         let conn = db::connection()?;
 
-        let res = select(exists(users::table.filter(users::id.eq(id))))
-            .get_result(&conn)?;
+        let res = select(exists(users::table.filter(users::id.eq(id)))).get_result(&conn)?;
         Ok(res)
     }
 

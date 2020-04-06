@@ -45,9 +45,4 @@ table! {
 
 joinable!(users -> departments (belong_to));
 
-allow_tables_to_appear_in_same_query!(
-    departments,
-    invitations,
-    namespaces,
-    users,
-);
+allow_tables_to_appear_in_same_query!(departments, invitations, namespaces, users,);
