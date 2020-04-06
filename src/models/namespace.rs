@@ -45,7 +45,7 @@ impl Namespace {
          Ok(result.namespace)
      }
 
-    pub fn get_ns_of(uid: Uuid) -> Result<Vec<String>, ApiError> {
+    pub fn get_ns_of(uid: &Uuid) -> Result<Vec<String>, ApiError> {
         let conn = db::connection()?;
 
         let results: Vec<String> = namespaces::table

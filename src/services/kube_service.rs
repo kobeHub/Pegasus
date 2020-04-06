@@ -91,9 +91,9 @@ pub async fn get_svc_within(ns: &str) -> Result<Vec<String>, ApiError> {
     Ok(results)
 }
 
-/// Deployment and Pod labels:
+/// Get all the deployment and pods mapping within a namespace
 ///
-/// All the pods belong to same deploy has same label `app=`
+/// All the pods belong to same deploy has at least onesame label
 /// `get_pod_within` will return a hashmap with deploy name
 /// as keys, pod name as value
 pub async fn get_pod_within(ns: &str) -> Result<BTreeMap<String, Vec<String>>, ApiError> {
@@ -105,14 +105,22 @@ pub async fn get_pod_within(ns: &str) -> Result<BTreeMap<String, Vec<String>>, A
 
     let mut result = BTreeMap::new();
     for d in &deploy {
-        let deploy_label = &Meta::meta(d).labels.as_ref().unwrap()["app"];
-        let deploy_name = Meta::name(d);
-        result.insert(deploy_name.clone(), Vec::new());
-        for p in &pod {
-            let pod_label = &Meta::meta(p).labels.as_ref().unwrap()["app"];
-            if deploy_label == pod_label {
-                if let Some(x) = result.get_mut(&deploy_name) {
-                    x.push(Meta::name(p))
+        if let Some(deploy_spec) = &d.spec {
+            if let Some(match_labels) = &deploy_spec.selector.match_labels {
+                    let deploy_name = Meta::name(d);
+                    result.insert(deploy_name.clone(), Vec::new());
+                    for p in &pod {
+                        if let Some(pod_meta) = &p.metadata {
+                            if let Some(pod_labels) = &pod_meta.labels {
+                                for (deploy_key, deploy_value) in match_labels.iter() {
+                                    if pod_labels.contains_key(deploy_key) && pod_labels[deploy_key] == *deploy_value {
+                                        if let Some(x) = result.get_mut(&deploy_name) {
+                                            x.push(Meta::name(p))
+                                        }
+                                    }
+                                }
+                            }
+                        }
                 }
             }
         }

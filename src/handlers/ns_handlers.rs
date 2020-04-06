@@ -1,14 +1,17 @@
-use actix_web::{web, post, HttpResponse, Scope};
+use actix_web::{web, post, get, HttpResponse, Scope};
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::models::namespace::{Namespace, NamespaceInfo};
+use crate::models::user::User;
 use crate::errors::ApiError;
 use crate::services::kube_service;
 
 #[post("/create")]
 async fn create_ns(info: web::Json<NamespaceInfo>) -> Result<HttpResponse, ApiError> {
-    let ns = Namespace::create(info.into_inner())?;
-    kube_service::create_ns(&ns.namespace).await?;
+    let info = info.into_inner();
+    kube_service::create_ns(&info.ns).await?;
+    let ns = Namespace::create(info)?;
 
     Ok(HttpResponse::Ok().json(ns))
 }
@@ -30,6 +33,11 @@ async fn delete_ns(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiError
         "status": res,
         "msg": format!("Delete namespace {} successfully", ns_name),
     })))
+}
+
+#[derive(Deserialize)]
+struct NSInfo {
+    pub id: Uuid,
 }
 
 pub fn ns_scope() -> Scope {

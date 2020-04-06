@@ -3,7 +3,7 @@ use actix_web::{get, web, HttpResponse, Result, Scope};
 
 use crate::handlers::{
     kube_test_handlers, depart_handlers, invitation_handlers,
-    user_handlers, ns_handlers,
+    user_handlers, ns_handlers, tasks_handlers,
 };
 use crate::utils::JSON_PARSE_CONFIG;
 
@@ -39,4 +39,5 @@ pub fn api_scope() -> Scope {
         .service(depart_handlers::department_scope())
         .service(kube_test_handlers::kube_test_scope())
         .service(ns_handlers::ns_scope())
+        .service(tasks_handlers::tasks_scope())
 }
