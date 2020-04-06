@@ -102,6 +102,8 @@ impl User {
         Ok(res)
     }
 
+    pub fn exist_id(id: &Uuid) -> Result<>
+
     pub fn create(info: UserInfo) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
