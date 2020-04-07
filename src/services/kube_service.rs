@@ -12,12 +12,14 @@ use std::collections::BTreeMap;
 use std::vec::Vec;
 
 use crate::errors::ApiError;
+use crate::models::kube::{DeployInfo, ServiceInfo};
 
 lazy_static! {
     pub static ref KUBE_CLIENT: Client =
         { block_on(Client::infer()).expect("Please config your k8s cluster correctly!") };
 }
 
+/// Get all nodes names, return a vector of String
 pub async fn get_nodes() -> Result<Vec<String>, ApiError> {
     let nodes: Api<Node> = Api::all(KUBE_CLIENT.clone());
     let results = nodes
@@ -29,6 +31,8 @@ pub async fn get_nodes() -> Result<Vec<String>, ApiError> {
     Ok(results)
 }
 
+/// Create a namespace in the cluster
+/// All the users' namespaces created with a label `dispense=pegasus`
 pub async fn create_ns<T>(ns: T) -> Result<(), ApiError>
 where
     T: Into<String>,
@@ -48,12 +52,17 @@ where
     Ok(())
 }
 
-pub async fn delete_ns(ns: &str) -> Result<bool, ApiError> {
+/// Delete namespace with name `ns`
+pub async fn delete_ns(ns: &str) -> Result<String, ApiError> {
     let resource: Api<Namespace> = Api::all(KUBE_CLIENT.clone());
-    let result = resource.delete(ns, &DeleteParams::default()).await?;
+    let res = resource.delete(ns, &DeleteParams::default()).await?;
 
     // TODO: handle right status
-    Ok(result.is_left())
+    if res.is_left() {
+        Ok(format!("Deleting namepsace {}", ns))
+    } else {
+        Ok(format!("Deleted successfully"))
+    }
 }
 
 // TODO: Add deploy, service, pod list
@@ -116,4 +125,125 @@ pub async fn get_pod_within(ns: &str) -> Result<BTreeMap<String, Vec<String>>, A
         }
     }
     Ok(result)
+}
+
+/// Create a deployment with basic config
+pub async fn create_deploy(deploy_info: DeployInfo) -> Result<Deployment, ApiError> {
+    let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), &deploy_info.namespace);
+
+    let mut deploy_obj: Deployment = serde_json::from_value(json!({
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+            "name": deploy_info.name,
+            "namespace": deploy_info.namespace,
+            "labels": {
+                "pegausus.state/reschedulable": deploy_info.reschedulable.to_string(),
+                "pegasus.state/dispense": "pegasus",
+                "pegasus.name/app": deploy_info.app_label,
+            },
+        },
+        "spec": {
+            "replicas": deploy_info.replicas,
+            "selector": {
+                "matchLabels": {
+                    "pegasus.name/app": deploy_info.app_label,
+                }
+            },
+            "strategy": {
+                "type": "RollingUpdate",
+                "rollingUpdate": {
+                    "maxSurge": "25%",
+                    "maxUnavailable": "25%",
+                }
+            },
+            "template": {
+                "metadata": {
+                    "labels": {
+                        "pegasus.name/app": deploy_info.app_label,
+                        "pegasus.state/reschedulable": deploy_info.reschedulable.to_string(),
+                    }
+                },
+                "spec": {
+                    "containers": [],
+                },
+            },
+        },
+    }))?;
+
+    if let Some(ref mut spec) = deploy_obj.spec.as_mut() {
+        if let Some(ref mut temp) = spec.template.spec.as_mut() {
+            temp.containers = deploy_info.containers;
+        }
+    }
+    let res = resource.create(&PostParams::default(), &deploy_obj).await?;
+
+    Ok(res)
+}
+
+/// Delete a deploy in spefic namespace
+pub async fn delete_deploy(ns: &str, name: &str) -> Result<String, ApiError> {
+    let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let res = resource.delete(name, &DeleteParams::default()).await?;
+
+    if res.is_left() {
+        Ok(format!("Deleting deploy {}:{}", ns, name))
+    } else {
+        Ok(format!("Deleted successfully"))
+    }
+}
+
+/// Create service with baisc config
+pub async fn create_svc(info: ServiceInfo) -> Result<Service, ApiError> {
+    let resource: Api<Service> = Api::namespaced(KUBE_CLIENT.clone(), &info.namespace);
+
+    let svc_obj: Service = serde_json::from_value(json!({
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+            "name": info.name,
+            "namespace": info.namespace,
+            "labels": {
+                "pegasus.state/dispense": "pegasus",
+                "pegasus.name/svc": format!("{}-service", info.app_label),
+            },
+        },
+        "spec": {
+            "ports": [{
+                "name": "default-http",
+                "port": info.port,
+                "protocol": "TCP",
+                "targetPort": "default-http",
+            }],
+            "selector": {
+                "pegasus.name/app": info.app_label,
+            },
+        },
+    }))?;
+
+    let res = resource.create(&PostParams::default(), &svc_obj).await?;
+    Ok(res)
+}
+
+/// Delete given service
+pub async fn delete_svc(ns: &str, name: &str) -> Result<String, ApiError> {
+    let resource: Api<Service> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let res = resource.delete(name, &DeleteParams::default()).await?;
+
+    if res.is_left() {
+        Ok(format!("Deleting service {}:{}", ns, name))
+    } else {
+        Ok("Deleted service successfully".to_string())
+    }
+}
+
+pub async fn delete_pod(ns: &str, name: &str) -> Result<String, ApiError> {
+    let resource: Api<Pod> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let res = resource.delete(name, &DeleteParams::default()).await?;
+
+    if res.is_left() {
+        Ok(format!("Deleting pod {}:{}", ns, name))
+    } else {
+        Ok("Deleted pod successfully".to_string())
+    }
 }
