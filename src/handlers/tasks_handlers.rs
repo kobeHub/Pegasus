@@ -43,6 +43,7 @@ async fn get_info(info: web::Query<UserInfo>) -> Result<HttpResponse, ApiError> 
     Ok(HttpResponse::Ok().json(json!({
         "status": true,
         "data": {
+            "namespace": namespaces,
             "deploy": deploys,
             "service": services,
             "pod": pods,
