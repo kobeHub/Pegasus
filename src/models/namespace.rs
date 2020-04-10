@@ -35,10 +35,11 @@ impl Namespace {
         Ok(result)
     }
 
-    pub fn delete(id: i32) -> Result<String, ApiError> {
+    pub fn delete(uid: &Uuid, ns: &str) -> Result<String, ApiError> {
         let conn = db::connection()?;
 
-        let result: Namespace = diesel::update(namespaces::table.filter(namespaces::id.eq(id)))
+        let result: Namespace = diesel::update(namespaces::table.filter(
+            namespaces::uid.eq(uid).and(namespaces::namespace.eq(ns))))
             .set(namespaces::valid.eq(false))
             .get_result(&conn)?;
         Ok(result.namespace)

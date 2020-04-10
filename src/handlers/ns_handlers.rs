@@ -17,16 +17,16 @@ async fn create_ns(info: web::Json<NamespaceInfo>) -> Result<HttpResponse, ApiEr
 
 #[derive(Deserialize)]
 struct DeleteInfo {
-    pub id: i32,
+    pub uid: Uuid,
+    pub namespace: String,
 }
 
 #[delete("/delete")]
 async fn delete_ns(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiError> {
-    let id = info.into_inner().id;
-    let ns_name = Namespace::delete(id)?;
+    let info = info.into_inner();
 
-    // TODO
-    let res = kube_service::delete_ns(&ns_name).await?;
+    let res = kube_service::delete_ns(&info.namespace).await?;
+    Namespace::delete(&info.uid, &info.namespace)?;
 
     Ok(HttpResponse::Ok().json(json!({
         "msg": res,
