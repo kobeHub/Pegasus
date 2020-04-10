@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 use std::vec::Vec;
 
 use crate::errors::ApiError;
-use crate::models::kube::{DeployInfo, ServiceInfo};
+use crate::models::kube::{DeployInfo, ResourceState, ServiceInfo};
 
 lazy_static! {
     pub static ref KUBE_CLIENT: Client =
@@ -66,24 +66,24 @@ pub async fn delete_ns(ns: &str) -> Result<String, ApiError> {
 }
 
 // TODO: Add deploy, service, pod list
-pub async fn get_deploy_within(ns: &str) -> Result<Vec<String>, ApiError> {
+pub async fn get_deploy_within(ns: &str) -> Result<Vec<ResourceState>, ApiError> {
     let deploys: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
-    let results: Vec<String> = deploys
+    let results: Vec<ResourceState> = deploys
         .list(&ListParams::default())
         .await?
         .iter()
-        .map(Meta::name)
+        .map(ResourceState::from)
         .collect();
     Ok(results)
 }
 
-pub async fn get_svc_within(ns: &str) -> Result<Vec<String>, ApiError> {
+pub async fn get_svc_within(ns: &str) -> Result<Vec<ResourceState>, ApiError> {
     let svc: Api<Service> = Api::namespaced(KUBE_CLIENT.clone(), ns);
     let results = svc
         .list(&ListParams::default())
         .await?
         .iter()
-        .map(Meta::name)
+        .map(ResourceState::from)
         .collect();
     Ok(results)
 }
@@ -93,7 +93,8 @@ pub async fn get_svc_within(ns: &str) -> Result<Vec<String>, ApiError> {
 /// All the pods belong to same deploy has at least onesame label
 /// `get_pod_within` will return a hashmap with deploy name
 /// as keys, pod name as value
-pub async fn get_pod_within(ns: &str) -> Result<BTreeMap<String, Vec<String>>, ApiError> {
+pub async fn get_pod_within(ns: &str) ->
+    Result<BTreeMap<String, Vec<ResourceState>>, ApiError> {
     let deploys: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
     let pods: Api<Pod> = Api::namespaced(KUBE_CLIENT.clone(), ns);
 
@@ -114,7 +115,7 @@ pub async fn get_pod_within(ns: &str) -> Result<BTreeMap<String, Vec<String>>, A
                                     && pod_labels[deploy_key] == *deploy_value
                                 {
                                     if let Some(x) = result.get_mut(&deploy_name) {
-                                        x.push(Meta::name(p))
+                                        x.push(ResourceState::from(p))
                                     }
                                 }
                             }
