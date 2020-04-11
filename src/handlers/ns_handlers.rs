@@ -1,4 +1,4 @@
-use actix_web::{post, delete, web, HttpResponse, Scope};
+use actix_web::{post, delete, get, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -34,6 +34,19 @@ async fn delete_ns(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiError
 }
 
 #[derive(Deserialize)]
+struct GetInfo {
+    pub id: Uuid,
+}
+
+#[get("belong")]
+async fn get_ns_belong(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
+    let info = info.into_inner();
+
+    let res = Namespace::get_ns_of(&info.id)?;
+    Ok(HttpResponse::Ok().json(res))
+}
+
+#[derive(Deserialize)]
 struct NSInfo {
     pub id: Uuid,
 }
@@ -42,4 +55,5 @@ pub fn ns_scope() -> Scope {
     web::scope("/ns")
         .service(create_ns)
         .service(delete_ns)
+        .service(get_ns_belong)
 }
