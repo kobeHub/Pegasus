@@ -2,6 +2,8 @@ use actix_web::{post, delete, get, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
+use std::collections::BTreeMap;
+
 use crate::errors::ApiError;
 use crate::models::namespace::{Namespace, NamespaceInfo};
 use crate::services::kube_service;
@@ -46,9 +48,16 @@ async fn get_ns_belong(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiErr
     Ok(HttpResponse::Ok().json(res))
 }
 
-#[derive(Deserialize)]
-struct NSInfo {
-    pub id: Uuid,
+#[get("/labels")]
+async fn get_app_labels(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
+    let info = info.into_inner();
+    let nss = Namespace::get_ns_of(&info.id)?;
+    let mut results: BTreeMap<String, Vec<Option<String>>> = BTreeMap::new();
+    for ns in nss.iter() {
+        let labels = kube_service::get_label_map(ns).await?;
+        results.insert(ns.to_string(), labels);
+    }
+    Ok(HttpResponse::Ok().json(results))
 }
 
 pub fn ns_scope() -> Scope {
@@ -56,4 +65,5 @@ pub fn ns_scope() -> Scope {
         .service(create_ns)
         .service(delete_ns)
         .service(get_ns_belong)
+        .service(get_app_labels)
 }
