@@ -65,7 +65,7 @@ pub async fn delete_ns(ns: &str) -> Result<String, ApiError> {
     }
 }
 
-// TODO: Add deploy, service, pod list
+/// Get all deploy within a namespace
 pub async fn get_deploy_within(ns: &str) -> Result<Vec<ResourceState>, ApiError> {
     let deploys: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
     let results: Vec<ResourceState> = deploys
@@ -182,6 +182,21 @@ pub async fn create_deploy(deploy_info: DeployInfo) -> Result<Deployment, ApiErr
     Ok(res)
 }
 
+/// Get deployment current state
+pub async fn get_deploy_state(ns: &str, name: &str) -> Result<Deployment, ApiError> {
+    let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let deploy = resource.get(name).await?;
+    Ok(deploy)
+}
+
+/// Replace deployment
+pub async fn replace_deploy(ns: &str, name: &str, deploy: &Deployment) -> Result<Deployment, ApiError> {
+    let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let pp = PostParams::default();
+    let deploy = resource.replace(name, &pp, deploy).await?;
+    Ok(deploy)
+}
+
 /// Delete a deploy in spefic namespace
 pub async fn delete_deploy(ns: &str, name: &str) -> Result<String, ApiError> {
     let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
@@ -192,6 +207,13 @@ pub async fn delete_deploy(ns: &str, name: &str) -> Result<String, ApiError> {
     } else {
         Ok(format!("Deleted successfully"))
     }
+}
+
+/// Get current Service object
+pub async fn get_svc_state(ns: &str, name: &str) -> Result<Service, ApiError> {
+    let resource: Api<Service> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let svc = resource.get(name).await?;
+    Ok(svc)
 }
 
 /// Create service with baisc config
@@ -238,6 +260,13 @@ pub async fn delete_svc(ns: &str, name: &str) -> Result<String, ApiError> {
     }
 }
 
+/// Repalce Service
+pub async fn replace_svc(ns: &str, name: &str, svc: &Service) -> Result<Service, ApiError> {
+    let resource: Api<Service> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let svc = resource.replace(name, &PostParams::default(), svc).await?;
+    Ok(svc)
+}
+
 pub async fn delete_pod(ns: &str, name: &str) -> Result<String, ApiError> {
     let resource: Api<Pod> = Api::namespaced(KUBE_CLIENT.clone(), ns);
     let res = resource.delete(name, &DeleteParams::default()).await?;
@@ -247,4 +276,27 @@ pub async fn delete_pod(ns: &str, name: &str) -> Result<String, ApiError> {
     } else {
         Ok("Deleted pod successfully".to_string())
     }
+}
+
+/// `app_label` identify one app in a namespace
+pub async fn get_label_map(ns: &str) -> Result<Vec<Option<String>>, ApiError> {
+    let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let results = resource
+        .list(&ListParams::default())
+        .await?
+        .iter()
+        .map(|x| {
+           if let Some(labels) = &x.meta().labels {
+               if labels.contains_key("pegasus.name/app") {
+                   Some(labels["pegasus.name/app"].clone())
+               } else {
+                   None
+               }
+           } else {
+                None
+           }
+        })
+        .filter(|x| x.is_some())
+        .collect();
+    Ok(results)
 }

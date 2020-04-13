@@ -2,10 +2,14 @@ use actix_web::{get, post, delete, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
+use k8s_openapi::api::apps::v1::Deployment;
+use k8s_openapi::api::core::v1::Service;
+use kube::api::Meta;
+
 use crate::errors::ApiError;
 use crate::models::namespace::Namespace;
 use crate::models::user::User;
-use crate::models::kube::{DeployInfo, ServiceInfo, DeleteInfo};
+use crate::models::kube::{DeployInfo, ServiceInfo, DeleteInfo, GetInfo};
 use crate::services::kube_service;
 
 use std::collections::BTreeMap;
@@ -52,6 +56,12 @@ async fn get_info(info: web::Query<UserInfo>) -> Result<HttpResponse, ApiError> 
     })))
 }
 
+#[get("/deploy")]
+async fn get_deploy(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
+    let res = kube_service::get_deploy_state(&info.namespace, &info.name).await?;
+    Ok(HttpResponse::Ok().json(res))
+}
+
 #[post("/deploy")]
 async fn create_deploy(info: web::Json<DeployInfo>) -> Result<HttpResponse, ApiError> {
     let info = info.into_inner();
@@ -73,6 +83,26 @@ async fn delete_deploy(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiE
     })))
 }
 
+#[post("/replacedeploy")]
+async fn replace_deploy(info: web::Json<Deployment>) -> Result<HttpResponse, ApiError> {
+    let info = info.into_inner();
+    let name = &info.name();
+    if let Some(ns) = info.meta().namespace.as_ref() {
+        let o_patched = kube_service::replace_deploy(ns, name, &info).await?;
+
+        Ok(HttpResponse::Ok().json(json!({
+            "status": true,
+            "msg": "Deployment edit successfully",
+            "data": o_patched,
+        })))
+    } else {
+        Ok(HttpResponse::Ok().json(json!({
+            "status": false,
+            "msg": "Namespace must be provided!",
+        })))
+    }
+}
+
 #[post("/svc")]
 async fn create_svc(info: web::Json<ServiceInfo>) -> Result<HttpResponse, ApiError> {
     let info = info.into_inner();
@@ -85,6 +115,12 @@ async fn create_svc(info: web::Json<ServiceInfo>) -> Result<HttpResponse, ApiErr
     })))
 }
 
+#[get("/svc")]
+async fn get_svc(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
+    let res = kube_service::get_svc_state(&info.namespace, &info.name).await?;
+    Ok(HttpResponse::Ok().json(res))
+}
+
 #[delete("/svc")]
 async fn delete_svc(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiError> {
     let info = info.into_inner();
@@ -93,6 +129,26 @@ async fn delete_svc(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiErro
     Ok(HttpResponse::Ok().json(json!({
         "msg": msg,
     })))
+}
+
+#[post("/replacesvc")]
+async fn replace_svc(info: web::Json<Service>) -> Result<HttpResponse, ApiError> {
+    let info = info.into_inner();
+    let name = &info.name();
+    if let Some(ns) = info.meta().namespace.as_ref() {
+        let o_patched = kube_service::replace_svc(ns, name, &info).await?;
+
+        Ok(HttpResponse::Ok().json(json!({
+            "status": true,
+            "msg": "Service edit successfully",
+            "data": o_patched,
+        })))
+    } else {
+        Ok(HttpResponse::Ok().json(json!({
+            "status": false,
+            "msg": "Namespace must be provided!",
+        })))
+    }
 }
 
 #[delete("/pod")]
@@ -108,9 +164,13 @@ async fn delete_pod(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiErro
 pub fn tasks_scope() -> Scope {
     web::scope("/tasks")
         .service(get_info)
+        .service(get_deploy)
         .service(create_deploy)
         .service(delete_deploy)
+        .service(get_svc)
         .service(create_svc)
         .service(delete_svc)
         .service(delete_pod)
+        .service(replace_deploy)
+        .service(replace_svc)
 }

@@ -86,6 +86,6 @@ impl From<KubeError> for ApiError {
 
 impl From<SerdeError> for ApiError {
     fn from(error: SerdeError) -> ApiError {
-        ApiError::new(500, format!("Serde error: {}", error))
+        ApiError::new(500, format!("Json serde error: {}", error))
     }
 }
