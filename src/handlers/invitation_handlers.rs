@@ -1,4 +1,4 @@
-use actix_session::Session;
+//use actix_session::Session;
 use actix_web::{post, web, HttpResponse, Scope};
 use serde_json::json;
 use std::str::FromStr;
@@ -6,13 +6,13 @@ use uuid::Uuid;
 
 use crate::errors::ApiError;
 use crate::models::invitation::{Invitation, InvitationData};
-use crate::models::user::{ClusterRole, User};
+use crate::models::user::User;
 use crate::services::email_service;
 
 #[post("/post")]
 async fn post_invitation(
     invit_data: web::Json<InvitationData>,
-    /* sess: Session,*/
+    //sess: Session,
 ) -> Result<HttpResponse, ApiError> {
     /*if let None = sess.get::<Option<ClusterRole>>("cluster_role")? {
             return Err(ApiError::new(401, "Unauthorized".to_string()))
