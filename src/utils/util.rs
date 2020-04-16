@@ -17,6 +17,8 @@ lazy_static! {
         std::env::var("ORGANISE_NAME").unwrap_or("Pegasus".to_owned());
     pub static ref DOMAIN: String =
         std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
+    pub static ref ENGINE_API: String =
+        std::env::var("ENGINE_API").unwrap_or("http://localhost:9120/api/v1".to_string());
 }
 
 // return `ServiceError::BadRequest` if parse json error

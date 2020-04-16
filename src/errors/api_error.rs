@@ -4,6 +4,7 @@ use actix_web::{HttpResponse, ResponseError};
 use diesel::result::Error as DBError;
 use lettre::smtp::error::Error as SmtpError;
 use lettre_email::error::Error as ClientError;
+use reqwest::Error as ReqError;
 use serde_json::error::Error as SerdeError;
 use serde_json::json;
 use std::fmt;
@@ -87,5 +88,11 @@ impl From<KubeError> for ApiError {
 impl From<SerdeError> for ApiError {
     fn from(error: SerdeError) -> ApiError {
         ApiError::new(500, format!("Json serde error: {}", error))
+    }
+}
+
+impl From<ReqError> for ApiError {
+    fn from(error: ReqError) -> Self {
+        ApiError::new(500, format!("Reqwest call error: {}", error))
     }
 }

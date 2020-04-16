@@ -33,11 +33,11 @@ listenfd = "0.3"
 log = "0.4"
 r2d2 = "0.8.8"
 rand = "0.7.3"
-reqwest = "0.9"
+reqwest = { version = "0.10", features = ["json"] }
 rust-argon2 = "0.8.1"
 serde = "1.0.104"
 serde_derive = "1.0.104"
 serde_json = "1.0.47"
 time = "0.1.42"
-tokio = "0.2.11"
+tokio = { version = "0.2.11", features = ["full"] }
 uuid = { version="0.7.4", features=["serde", "v4"] }
