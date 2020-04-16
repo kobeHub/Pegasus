@@ -27,6 +27,15 @@ table! {
 }
 
 table! {
+    registries (id) {
+        id -> Int4,
+        belong_to -> Nullable<Uuid>,
+        repo -> Varchar,
+        is_public -> Bool,
+    }
+}
+
+table! {
     use crate::models::user::ClusterRoleMapping;
     use diesel::sql_types::{Uuid, Varchar, Text, Nullable,
                             Int4, Timestamp};
@@ -45,4 +54,10 @@ table! {
 
 joinable!(users -> departments (belong_to));
 
-allow_tables_to_appear_in_same_query!(departments, invitations, namespaces, users,);
+allow_tables_to_appear_in_same_query!(
+    departments,
+    invitations,
+    namespaces,
+    registries,
+    users,
+);
