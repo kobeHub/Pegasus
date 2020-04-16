@@ -27,10 +27,10 @@ table! {
 }
 
 table! {
-    registries (id) {
+    repositories (id) {
         id -> Int4,
         belong_to -> Nullable<Uuid>,
-        repo -> Varchar,
+        repo_name -> Varchar,
         is_public -> Bool,
     }
 }
@@ -58,6 +58,6 @@ allow_tables_to_appear_in_same_query!(
     departments,
     invitations,
     namespaces,
-    registries,
+    repositories,
     users,
 );
