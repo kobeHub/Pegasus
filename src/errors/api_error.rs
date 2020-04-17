@@ -34,7 +34,7 @@ impl ApiError {
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
         match error {
-            DBError::DatabaseError(_, err) => ApiError::new(409, err.message().to_string()),
+            DBError::DatabaseError(_, err) => ApiError::new(409, format!("Database error: {}", err.message().to_string())),
             DBError::NotFound => ApiError::new(404, "Record not found".to_owned()),
             err => ApiError::new(500, format!("Diesel error: {}", err)),
         }

@@ -21,6 +21,12 @@ pub struct DeleteInfo {
     pub repo_name: String,
 }
 
+#[derive(Deserialize)]
+pub struct PageInfo {
+    pub repo_name: String,
+    pub page: i32,
+}
+
 impl Repository {
     pub fn create(belong: Option<&Uuid>, repo_name: &str, is_public: bool) -> Result<Repository, ApiError> {
         let conn = db::connection()?;
