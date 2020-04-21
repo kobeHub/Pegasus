@@ -8,6 +8,8 @@ use crate::models::registry::{RepoResponse, RepoCreateInfo,
                               CreateResponse, RepoBuildRule, RulesResponse};
 use crate::models::repository::{Repository};
 
+use super::git_service;
+
 lazy_static::lazy_static!{
     pub static ref CLIENT: Client = Client::new();
 }
@@ -28,6 +30,7 @@ pub async fn get_repo(name: &str) -> Result<RepoResponse, ApiError> {
 
 /// Create a new reppository
 pub async fn create_repo(info: RepoCreateInfo) -> Result<(), ApiError> {
+    git_service::create_directory(&info.name).await?;
     build_request(
         format!("{}/repo/createRepo", ENGINE_API.clone()).as_str(),
         &json!({
@@ -60,11 +63,13 @@ pub async fn delete_repo(repo_name: &str) -> Result<(), ApiError> {
 
 /// Create build rules
 pub async fn create_build_rule(info: RepoBuildRule) -> Result<(), ApiError> {
+    let contents = base64::encode(info.dockerfile.as_bytes());
+    git_service::create_file(&info.repo_name, &info.tag, &contents).await?;
     build_request(
         format!("{}/repo/createRepoRule", ENGINE_API.clone()).as_str(),
         &json!({
             "repoName": info.repo_name,
-            "location": info.location,
+            "location": format!("/{}/{}", &info.repo_name, &info.tag),
             "tag": info.tag,
         }))
         .send()
@@ -77,7 +82,7 @@ pub async fn create_build_rule(info: RepoBuildRule) -> Result<(), ApiError> {
 // Get `repo_name`'s `page_num` build rules
 pub async fn get_build_rules(repo_name: &str) -> Result<RulesResponse, ApiError> {
     let data: RulesResponse = build_request(
-        format!("{}/repo/getRepo", ENGINE_API.clone()).as_str(),
+        format!("{}/repo/getRepoBuildRule", ENGINE_API.clone()).as_str(),
         &json!({
             "name": repo_name,
         }))

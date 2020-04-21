@@ -4,8 +4,8 @@ use uuid::Uuid;
 
 use crate::errors::ApiError;
 use crate::models::repository::{Repository, DeleteInfo, PageInfo};
-use crate::models::registry::{RepoCreateInfo, RepoBuildRule};
-use crate::services::registry_service;
+use crate::models::registry::{RepoCreateInfo, RepoBuildRule, RuleStartInfo};
+use crate::services::{git_service, registry_service};
 
 #[post("/create")]
 async fn create_repo(info: web::Json<RepoCreateInfo>) -> Result<HttpResponse, ApiError> {
@@ -46,10 +46,19 @@ async fn create_build_rule(info: web::Json<RepoBuildRule>) -> Result<HttpRespons
 }
 
 #[get("/rules")]
-async fn get_build_rules(info: web::Json<GetInfo>) -> Result<HttpResponse, ApiError> {
+async fn get_build_rules(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
     let info = info.into_inner();
     let res = registry_service::get_build_rules(&info.repo_name).await?;
     Ok(HttpResponse::Ok().json(res))
+}
+
+#[post("/startbuild")]
+async fn start_build_rule(info: web::Json<RuleStartInfo>) -> Result<HttpResponse, ApiError> {
+    registry_service::start_build_rule(&info.repo_name, &info.build_rule_id).await?;
+    Ok(HttpResponse::Ok().json(json!({
+        "status": true,
+        "msg": "Start build rule successfully",
+    })))
 }
 
 pub fn repos_scope() -> Scope {
@@ -60,4 +69,5 @@ pub fn repos_scope() -> Scope {
         .service(delete_repo)
         .service(create_build_rule)
         .service(get_build_rules)
+        .service(start_build_rule)
 }

@@ -13,6 +13,7 @@ actix-rt = "1.0"
 actix-service = "1.0.1"
 actix-session = "0.3.0"
 actix-web = "2.0.0"
+base64 = "0.12.0"
 chrono = { version="0.4.10", features=["serde"] }
 derive_more = "0.99"
 diesel = { version="1.4.3", features=["postgres", "uuidv07", "r2d2", "chrono"] }

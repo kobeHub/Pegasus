@@ -19,6 +19,14 @@ lazy_static! {
         std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
     pub static ref ENGINE_API: String =
         std::env::var("ENGINE_API").unwrap_or("http://localhost:9120/api/v1".to_string());
+    pub static ref GITHUB_AK: String =
+        std::env::var("GITHUB_AK").expect("GITHUB_AK must be set");
+    pub static ref GITHUB_API: String =
+        std::env::var("GITHUB_API").expect("GITHUB_API must be set");
+    pub static ref GITHUB_OWNER: String =
+        std::env::var("GITHUB_OWNER").expect("GITHUB_OWNER must be set");
+    pub static ref GITHUB_REPO: String =
+        std::env::var("GITHUB_REPO").expect("GITHUB_REPO must be set");
 }
 
 // return `ServiceError::BadRequest` if parse json error

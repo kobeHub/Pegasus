@@ -9,3 +9,7 @@ pub use util::SENDING_EMAIL_ADDRESS;
 pub use util::SENDING_EMAIL_PASSWD;
 pub use util::SMTP_SERVER_ADDR;
 pub use util::ENGINE_API;
+pub use util::GITHUB_AK;
+pub use util::GITHUB_API;
+pub use util::GITHUB_OWNER;
+pub use util::GITHUB_REPO;

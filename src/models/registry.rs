@@ -43,8 +43,8 @@ pub struct CreateResponse {
 pub struct RepoBuildRule {
     #[serde(rename = "repoName")]
     pub repo_name: String,
-    pub location: String,
     pub tag: String,
+    pub dockerfile: String, // Dockerfile content
 }
 
 #[derive(Serialize, Deserialize)]
@@ -59,4 +59,12 @@ pub struct RuleItem {
 pub struct RulesResponse {
     pub status: String,
     pub data: Vec<RuleItem>,
+}
+
+#[derive(Deserialize)]
+pub struct RuleStartInfo {
+    #[serde(rename="repoName")]
+    pub repo_name: String,
+    #[serde(rename = "buildRuleId")]
+    pub build_rule_id: String,
 }
