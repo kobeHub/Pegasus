@@ -27,6 +27,7 @@ async fn get_repo(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
 #[delete("/repo")]
 async fn delete_repo(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiError> {
     registry_service::delete_repo(&info.repo_name).await?;
+    git_service::delete_repo(&info.repo_name).await?;
     Repository::delete(&info.repo_name)?;
     Ok(HttpResponse::Ok().json(json!({
         "status": true,
@@ -61,6 +62,18 @@ async fn start_build_rule(info: web::Json<RuleStartInfo>) -> Result<HttpResponse
     })))
 }
 
+#[derive(Deserialize)]
+struct ShaInfo {
+    pub repo_name: String,
+    pub tag_name: String,
+}
+#[get("/imagesha/{repo_name}/{tag_name}")]
+async fn get_image_sha(path: web::Path<ShaInfo>) -> Result<HttpResponse, ApiError> {
+    let res = git_service::get_image_sha(&path.repo_name, &path.tag_name).await?;
+
+    Ok(HttpResponse::Ok().json(res))
+}
+
 pub fn repos_scope() -> Scope {
     web::scope("/repos")
         .service(create_repo)
@@ -70,4 +83,5 @@ pub fn repos_scope() -> Scope {
         .service(create_build_rule)
         .service(get_build_rules)
         .service(start_build_rule)
+        .service(get_image_sha)
 }

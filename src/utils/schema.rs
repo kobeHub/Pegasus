@@ -32,6 +32,7 @@ table! {
         belong_to -> Nullable<Uuid>,
         repo_name -> Varchar,
         is_public -> Bool,
+        is_valid -> Bool,
     }
 }
 

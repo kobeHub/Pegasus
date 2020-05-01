@@ -14,6 +14,7 @@ pub struct Repository {
     pub belong_to: Option<Uuid>,
     pub repo_name: String,
     pub is_public: bool,
+    pub is_valid: bool,
 }
 
 #[derive(Deserialize)]
@@ -44,9 +45,19 @@ impl Repository {
     pub fn delete(name: &str) -> Result<(), ApiError> {
         let conn = db::connection()?;
 
-        diesel::delete(repositories::table
-                         .filter(repositories::repo_name.eq(name)))
-              .execute(&conn)?;
+        diesel::update(repositories::table
+                       .filter(repositories::repo_name.eq(name)))
+            .set(repositories::is_valid.eq(false))
+            .execute(&conn)?;
         Ok(())
+    }
+
+    pub fn is_deleted(name: &str) -> Result<bool, ApiError> {
+        let conn = db::connection()?;
+
+        let result: Repository = repositories::table
+            .filter(repositories::repo_name.eq(name))
+            .get_result(&conn)?;
+        Ok(!result.is_valid)
     }
 }
