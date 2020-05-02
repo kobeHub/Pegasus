@@ -37,6 +37,15 @@ table! {
 }
 
 table! {
+    tags (id) {
+        id -> Int4,
+        repo_name -> Varchar,
+        tag_name -> Varchar,
+        is_valid -> Bool,
+    }
+}
+
+table! {
     use crate::models::user::ClusterRoleMapping;
     use diesel::sql_types::{Uuid, Varchar, Text, Nullable,
                             Int4, Timestamp};
@@ -60,5 +69,6 @@ allow_tables_to_appear_in_same_query!(
     invitations,
     namespaces,
     repositories,
+    tags,
     users,
 );

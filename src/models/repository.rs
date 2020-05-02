@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use diesel::result::Error as DBError;
 use uuid::Uuid;
 
 use super::db;
@@ -19,45 +20,87 @@ pub struct Repository {
 
 #[derive(Deserialize)]
 pub struct DeleteInfo {
+    #[serde(rename = "repoName")]
     pub repo_name: String,
 }
 
 #[derive(Deserialize)]
 pub struct PageInfo {
-    pub repo_name: String,
+    pub name: String,
     pub page: i32,
 }
 
-impl Repository {
-    pub fn create(belong: Option<&Uuid>, repo_name: &str, is_public: bool) -> Result<Repository, ApiError> {
-        let conn = db::connection()?;
+#[derive(Deserialize)]
+pub struct ImageInfo {
+    #[serde(rename = "repoName")]
+    pub repo_name: String,
+    pub tag: String,
+}
 
-        let result = diesel::insert_into(repositories::table)
-            .values(&(
-                repositories::belong_to.eq(belong),
-                repositories::repo_name.eq(repo_name),
-                repositories::is_public.eq(is_public),
-            ))
-            .get_result(&conn)?;
-        Ok(result)
+#[derive(PartialEq)]
+pub enum RepoRecordState {
+    NotFound,
+    Deleted,
+    Active,
+}
+
+impl Repository {
+    pub fn create(
+        belong: Option<&Uuid>,
+        repo_name: &str,
+        is_public: bool,
+        no_record: bool,
+    ) -> Result<Repository, ApiError> {
+        let conn = db::connection()?;
+        if no_record {
+            let result = diesel::insert_into(repositories::table)
+                .values(&(
+                    repositories::belong_to.eq(belong),
+                    repositories::repo_name.eq(repo_name),
+                    repositories::is_public.eq(is_public),
+                ))
+                .get_result(&conn)?;
+            Ok(result)
+        } else {
+            let result =
+                diesel::update(repositories::table.filter(repositories::repo_name.eq(repo_name)))
+                    .set((
+                        repositories::belong_to.eq(belong),
+                        repositories::is_public.eq(is_public),
+                        repositories::is_valid.eq(true),
+                    ))
+                    .get_result(&conn)?;
+            Ok(result)
+        }
     }
 
     pub fn delete(name: &str) -> Result<(), ApiError> {
         let conn = db::connection()?;
 
-        diesel::update(repositories::table
-                       .filter(repositories::repo_name.eq(name)))
+        diesel::update(repositories::table.filter(repositories::repo_name.eq(name)))
             .set(repositories::is_valid.eq(false))
             .execute(&conn)?;
         Ok(())
     }
 
-    pub fn is_deleted(name: &str) -> Result<bool, ApiError> {
+    pub fn record_state(name: &str) -> Result<RepoRecordState, ApiError> {
         let conn = db::connection()?;
 
-        let result: Repository = repositories::table
+        let result: Result<Repository, DBError> = repositories::table
             .filter(repositories::repo_name.eq(name))
-            .get_result(&conn)?;
-        Ok(!result.is_valid)
+            .get_result(&conn);
+        match result {
+            Ok(repo) => {
+                if repo.is_valid {
+                    Ok(RepoRecordState::Active)
+                } else {
+                    Ok(RepoRecordState::Deleted)
+                }
+            }
+            Err(e) => match e {
+                DBError::NotFound => Ok(RepoRecordState::NotFound),
+                _ => Err(ApiError::from(e)),
+            },
+        }
     }
 }

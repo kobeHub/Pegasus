@@ -63,8 +63,43 @@ pub struct RulesResponse {
 
 #[derive(Deserialize)]
 pub struct RuleStartInfo {
-    #[serde(rename="repoName")]
+    #[serde(rename = "repoName")]
     pub repo_name: String,
     #[serde(rename = "buildRuleId")]
     pub build_rule_id: String,
+}
+
+#[derive(Deserialize)]
+pub struct RuleDeleteInfo {
+    #[serde(rename = "repoName")]
+    pub repo_name: String,
+    #[serde(rename = "buildRuleId")]
+    pub build_rule_id: String,
+    pub tag: String,
+}
+
+/// Image tags
+#[derive(Deserialize, Serialize)]
+pub struct TagsResponse {
+    pub status: String,
+    pub data: TagsObject,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct TagsObject {
+    pub page: i32,
+    #[serde(rename = "pageSize")]
+    pub page_size: i32,
+    pub total: i32,
+    pub tags: Vec<TagItem>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct TagItem {
+    #[serde(rename = "imageId")]
+    pub image_id: String,
+    pub tag: String,
+    pub size: i32,
+    pub status: String,
+    pub digest: String,
 }

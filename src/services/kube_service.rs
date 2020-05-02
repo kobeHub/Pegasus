@@ -93,8 +93,7 @@ pub async fn get_svc_within(ns: &str) -> Result<Vec<ResourceState>, ApiError> {
 /// All the pods belong to same deploy has at least onesame label
 /// `get_pod_within` will return a hashmap with deploy name
 /// as keys, pod name as value
-pub async fn get_pod_within(ns: &str) ->
-    Result<BTreeMap<String, Vec<ResourceState>>, ApiError> {
+pub async fn get_pod_within(ns: &str) -> Result<BTreeMap<String, Vec<ResourceState>>, ApiError> {
     let deploys: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
     let pods: Api<Pod> = Api::namespaced(KUBE_CLIENT.clone(), ns);
 
@@ -190,7 +189,11 @@ pub async fn get_deploy_state(ns: &str, name: &str) -> Result<Deployment, ApiErr
 }
 
 /// Replace deployment
-pub async fn replace_deploy(ns: &str, name: &str, deploy: &Deployment) -> Result<Deployment, ApiError> {
+pub async fn replace_deploy(
+    ns: &str,
+    name: &str,
+    deploy: &Deployment,
+) -> Result<Deployment, ApiError> {
     let resource: Api<Deployment> = Api::namespaced(KUBE_CLIENT.clone(), ns);
     let pp = PostParams::default();
     let deploy = resource.replace(name, &pp, deploy).await?;
@@ -286,15 +289,15 @@ pub async fn get_label_map(ns: &str) -> Result<Vec<Option<String>>, ApiError> {
         .await?
         .iter()
         .map(|x| {
-           if let Some(labels) = &x.meta().labels {
-               if labels.contains_key("pegasus.name/app") {
-                   Some(labels["pegasus.name/app"].clone())
-               } else {
-                   None
-               }
-           } else {
+            if let Some(labels) = &x.meta().labels {
+                if labels.contains_key("pegasus.name/app") {
+                    Some(labels["pegasus.name/app"].clone())
+                } else {
+                    None
+                }
+            } else {
                 None
-           }
+            }
         })
         .filter(|x| x.is_some())
         .collect();

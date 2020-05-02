@@ -2,8 +2,8 @@ use actix_session::Session;
 use actix_web::{get, web, HttpResponse, Result, Scope};
 
 use crate::handlers::{
-    depart_handlers, invitation_handlers, kube_test_handlers, ns_handlers, tasks_handlers,
-    user_handlers, repos_handlers,
+    depart_handlers, invitation_handlers, kube_test_handlers, ns_handlers, repos_handlers,
+    tasks_handlers, user_handlers,
 };
 use crate::utils::JSON_PARSE_CONFIG;
 

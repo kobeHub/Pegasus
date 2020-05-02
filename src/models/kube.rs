@@ -1,5 +1,5 @@
-use k8s_openapi::api::core::v1::{Container, Pod, Service, Namespace};
 use k8s_openapi::api::apps::v1::Deployment;
+use k8s_openapi::api::core::v1::{Container, Namespace, Pod, Service};
 use kube::api::Meta;
 
 const AVAILABLE: &'static str = "Available";
@@ -49,13 +49,12 @@ impl From<&Deployment> for ResourceState {
         let mut state = false;
         if let Some(status) = &info.status {
             if let Some(cons) = &status.conditions {
-                state = cons[0].type_.as_str() == AVAILABLE &&
-                    cons[0].status.as_str() == TRUE;
+                state = cons[0].type_.as_str() == AVAILABLE && cons[0].status.as_str() == TRUE;
             }
         }
         ResourceState {
             name: Meta::name(info),
-            state: state
+            state: state,
         }
     }
 }

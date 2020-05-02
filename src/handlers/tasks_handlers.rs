@@ -1,4 +1,4 @@
-use actix_web::{get, post, delete, web, HttpResponse, Scope};
+use actix_web::{delete, get, post, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -7,9 +7,9 @@ use k8s_openapi::api::core::v1::Service;
 use kube::api::Meta;
 
 use crate::errors::ApiError;
+use crate::models::kube::{DeleteInfo, DeployInfo, GetInfo, ServiceInfo};
 use crate::models::namespace::Namespace;
 use crate::models::user::User;
-use crate::models::kube::{DeployInfo, ServiceInfo, DeleteInfo, GetInfo};
 use crate::services::kube_service;
 
 use std::collections::BTreeMap;

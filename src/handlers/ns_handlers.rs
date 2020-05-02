@@ -1,4 +1,4 @@
-use actix_web::{post, delete, get, web, HttpResponse, Scope};
+use actix_web::{delete, get, post, web, HttpResponse, Scope};
 use serde_json::json;
 use uuid::Uuid;
 
