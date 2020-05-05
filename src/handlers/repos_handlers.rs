@@ -1,9 +1,12 @@
 use actix_web::{delete, get, post, web, HttpResponse, Scope};
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::errors::ApiError;
-use crate::models::registry::{RepoBuildRule, RepoCreateInfo, RuleDeleteInfo, RuleStartInfo};
-use crate::models::repository::{DeleteInfo, ImageInfo, PageInfo, RepoRecordState, Repository};
+use crate::models::registry::{RepoBuildRule, RepoCreateInfo,
+                              RuleDeleteInfo, RuleStartInfo};
+use crate::models::repository::{DeleteInfo, ImageInfo, PageInfo,
+                                RepoRecordState, Repository};
 use crate::models::tag::{Tag, TagRecordState};
 use crate::services::registry_service;
 
@@ -40,6 +43,33 @@ type GetInfo = DeleteInfo;
 async fn get_repo(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
     let res = registry_service::get_repo(&info.repo_name).await?;
     Ok(HttpResponse::Ok().json(res))
+}
+
+#[derive(Deserialize)]
+struct UserInfo {
+    pub uid: Uuid,
+}
+
+// Get one user's private repos
+#[get("/private")]
+async fn get_private_repos(info: web::Query<UserInfo>) -> Result<HttpResponse, ApiError> {
+    let names = Repository::get_repos_by_uid(&info.uid)?;
+    let mut result = Vec::new();
+    for name in names.iter() {
+        let repo = registry_service::get_repo(name).await?.data;
+        result.push(repo);
+    }
+
+
+    Ok(HttpResponse::Ok().json(result))
+}
+
+#[get("/public")]
+async fn get_public_repos() -> Result<HttpResponse, ApiError> {
+    let res = Repository::get_public()?;
+    Ok(HttpResponse::Ok().json(json!({
+        "data": res,
+    })))
 }
 
 #[delete("/repo")]
@@ -121,6 +151,8 @@ pub fn repos_scope() -> Scope {
         .service(create_repo)
         .service(delete_repo)
         .service(get_repo)
+        .service(get_public_repos)
+        .service(get_private_repos)
         .service(get_tags)
         .service(delete_repo)
         .service(delete_image)

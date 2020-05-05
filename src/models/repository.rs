@@ -103,4 +103,32 @@ impl Repository {
             },
         }
     }
+
+    pub fn get_public() -> Result<Vec<String>, ApiError> {
+        let conn = db::connection()?;
+
+        let result: Vec<String> = repositories::table
+            .filter(repositories::is_public.eq(true).and(repositories::is_valid.eq(true)))
+            .get_results(&conn)?
+            .iter()
+            .map(Repository::repo_name)
+            .collect();
+        Ok(result)
+    }
+
+    pub fn get_repos_by_uid(id: &Uuid) -> Result<Vec<String>, ApiError> {
+        let conn = db::connection()?;
+
+        let results: Vec<String> = repositories::table
+            .filter(repositories::belong_to.eq(id))
+            .get_results(&conn)?
+            .iter()
+            .map(Repository::repo_name)
+            .collect();
+        Ok(results)
+    }
+
+    fn repo_name(&self) -> String {
+        self.repo_name.clone()
+    }
 }
