@@ -108,7 +108,11 @@ impl Repository {
         let conn = db::connection()?;
 
         let result: Vec<String> = repositories::table
-            .filter(repositories::is_public.eq(true).and(repositories::is_valid.eq(true)))
+            .filter(
+                repositories::is_public
+                    .eq(true)
+                    .and(repositories::is_valid.eq(true)),
+            )
             .get_results(&conn)?
             .iter()
             .map(Repository::repo_name)

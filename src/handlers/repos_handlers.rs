@@ -3,10 +3,8 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::errors::ApiError;
-use crate::models::registry::{RepoBuildRule, RepoCreateInfo,
-                              RuleDeleteInfo, RuleStartInfo};
-use crate::models::repository::{DeleteInfo, ImageInfo, PageInfo,
-                                RepoRecordState, Repository};
+use crate::models::registry::{RepoBuildRule, RepoCreateInfo, RuleDeleteInfo, RuleStartInfo};
+use crate::models::repository::{DeleteInfo, ImageInfo, PageInfo, RepoRecordState, Repository};
 use crate::models::tag::{Tag, TagRecordState};
 use crate::services::registry_service;
 
@@ -59,7 +57,6 @@ async fn get_private_repos(info: web::Query<UserInfo>) -> Result<HttpResponse, A
         let repo = registry_service::get_repo(name).await?.data;
         result.push(repo);
     }
-
 
     Ok(HttpResponse::Ok().json(result))
 }
