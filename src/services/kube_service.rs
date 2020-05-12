@@ -2,7 +2,7 @@ use futures::executor::block_on;
 use k8s_openapi::api::apps::v1::Deployment;
 use k8s_openapi::api::core::v1::{Namespace, Node, Pod, Service};
 use kube::{
-    api::{Api, DeleteParams, ListParams, Meta, PostParams},
+    api::{Api, DeleteParams, ListParams, LogParams, Meta, PostParams},
     client::Client,
 };
 use lazy_static::lazy_static;
@@ -302,4 +302,30 @@ pub async fn get_label_map(ns: &str) -> Result<Vec<Option<String>>, ApiError> {
         .filter(|x| x.is_some())
         .collect();
     Ok(results)
+}
+
+/// Get all containers within a pod
+pub async fn get_containers_within(ns: &str, pod: &str) -> Result<Option<Vec<String>>, ApiError> {
+    let resource: Api<Pod> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+
+    let results: Option<Vec<String>> = resource.get(pod)
+        .await?
+        .spec
+        .map(|x| {
+            x.containers.iter()
+                .map(|c| c.name.clone())
+                .collect()
+        });
+    Ok(results)
+}
+
+/// Get one container log in pod
+pub async fn get_pod_log(ns: &str, pod: &str, container: Option<String>) -> Result<String, ApiError> {
+    let resource: Api<Pod> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let mut param = LogParams::default();
+    param.container = container;
+
+    let result = resource.logs(pod, &param)
+        .await?;
+    Ok(result)
 }

@@ -27,6 +27,14 @@ pub struct DeleteInfo {
 
 pub type GetInfo = DeleteInfo;
 
+/// Container get info
+#[derive(Serialize, Deserialize)]
+pub struct ContainerInfo {
+    pub name: String,
+    pub namespace: String,
+    pub container: Option<String>,
+}
+
 /// Resources state the object item send to web client
 #[derive(Serialize, Deserialize)]
 pub struct ResourceState {

@@ -7,7 +7,8 @@ use k8s_openapi::api::core::v1::Service;
 use kube::api::Meta;
 
 use crate::errors::ApiError;
-use crate::models::kube::{DeleteInfo, DeployInfo, GetInfo, ServiceInfo};
+use crate::models::kube::{DeleteInfo, DeployInfo, GetInfo,
+                          ContainerInfo, ServiceInfo};
 use crate::models::namespace::Namespace;
 use crate::models::user::User;
 use crate::services::kube_service;
@@ -161,6 +162,22 @@ async fn delete_pod(info: web::Json<DeleteInfo>) -> Result<HttpResponse, ApiErro
     })))
 }
 
+#[get("/containers")]
+async fn get_containers(info: web::Query<GetInfo>) -> Result<HttpResponse, ApiError> {
+    let info = info.into_inner();
+
+    let data = kube_service::get_containers_within(&info.namespace, &info.name).await?;
+    Ok(HttpResponse::Ok().json(data))
+}
+
+#[get("/podlog")]
+async fn get_pod_log(info: web::Query<ContainerInfo>) -> Result<HttpResponse, ApiError> {
+    let info = info.into_inner();
+
+    let data = kube_service::get_pod_log(&info.namespace, &info.name, info.container).await?;
+    Ok(HttpResponse::Ok().json(data))
+}
+
 pub fn tasks_scope() -> Scope {
     web::scope("/tasks")
         .service(get_info)
@@ -173,4 +190,6 @@ pub fn tasks_scope() -> Scope {
         .service(delete_pod)
         .service(replace_deploy)
         .service(replace_svc)
+        .service(get_containers)
+        .service(get_pod_log)
 }

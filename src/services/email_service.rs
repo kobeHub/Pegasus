@@ -18,7 +18,7 @@ use std::fs;
 lazy_static! {
     pub static ref EMAIL_TEMPLATE: String = {
         let mut file = std::env::current_dir().unwrap();
-        file.push("src/services/template.html");
+        file.push("templates/template.html");
         // println!("{:?}", file);
         fs::read_to_string(file.as_path()).unwrap()
     };
