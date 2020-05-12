@@ -27,21 +27,22 @@ ENV OPENSSL_DIR /musl
 # Set cargo registry
 RUN echo "[source.crates-io]\nregistry = \"https://github.com/rust-lang/crates.io-index\"\nreplace-with = 'ustc'\n[source.ustc]\nregistry = \"git://mirrors.ustc.edu.cn/crates.io-index\"" > /usr/local/cargo/config
 WORKDIR /app
-RUN USER=root cargo new --bin pegasus
+RUN USER=root cargo new --bin pegasus && rm -rf /app/pegasus/src
 WORKDIR /app/pegasus
-COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+COPY Cargo.toml Cargo.lock diesel.toml ./
+COPY migrations ./migrations
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl
-RUN rm -rf src
-COPY ./src ./src
-RUN RUSTFLAGS=-Clinker=musl-gcc  cargo build --release --target=x86_64-unknown-linux-musl
 
 #----------------------------------------------------------
 # Final Stage
 #----------------------------------------------------------
 FROM alpine:latest as final
+RUN apk add libpq
 WORKDIR /pegasus/app
 COPY --from=cargo-build /app/pegasus/target/x86_64-unknown-linux-musl/release/pegasus .
 COPY templates .
 COPY migrations .
 COPY .env .
-CMD ['./pegasus']
+EXPOSE 8088
+CMD ["/pegasus/app/pegasus"]
