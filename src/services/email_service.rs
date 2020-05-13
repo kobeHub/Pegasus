@@ -11,7 +11,7 @@ use lazy_static::lazy_static;
 use crate::errors::ApiError;
 use crate::models::invitation::Invitation;
 use crate::utils::{
-    DOMAIN, ORGANISE_NAME, SENDING_EMAIL_ADDRESS, SENDING_EMAIL_PASSWD, SMTP_SERVER_ADDR,
+    EMAIL_DOMAIN, ORGANISE_NAME, SENDING_EMAIL_ADDRESS, SENDING_EMAIL_PASSWD, SMTP_SERVER_ADDR,
 };
 
 use std::fs;
@@ -29,11 +29,11 @@ pub fn send_email(invit: &Invitation) -> Result<(), ApiError> {
         .clone()
         .replacen("#", ORGANISE_NAME.as_str(), 1)
         .replacen("#", ORGANISE_NAME.as_str(), 1)
-        .replacen("#", DOMAIN.as_str(), 1)
+        .replacen("#", EMAIL_DOMAIN.as_str(), 1)
         .replacen("#", &invit.id.to_string(), 1)
-        .replacen("#", DOMAIN.as_str(), 1)
+        .replacen("#", EMAIL_DOMAIN.as_str(), 1)
         .replacen("#", &invit.id.to_string(), 1)
-        .replacen("#", DOMAIN.as_str(), 1)
+        .replacen("#", EMAIL_DOMAIN.as_str(), 1)
         .replacen("#", &invit.id.to_string(), 1);
 
     let email = EmailBuilder::new()

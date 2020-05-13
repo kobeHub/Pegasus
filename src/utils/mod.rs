@@ -2,6 +2,7 @@ pub mod schema;
 mod util;
 
 pub use util::DOMAIN;
+pub use util::EMAIL_DOMAIN;
 pub use util::ENGINE_API;
 pub use util::GITHUB_AK;
 pub use util::GITHUB_API;
