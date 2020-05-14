@@ -1,6 +1,8 @@
 use futures::executor::block_on;
 use k8s_openapi::api::apps::v1::Deployment;
 use k8s_openapi::api::core::v1::{Namespace, Node, Pod, Service};
+use k8s_openapi::api::extensions::v1beta1::{Ingress, IngressBackend, HTTPIngressPath};
+use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 use kube::{
     api::{Api, DeleteParams, ListParams, LogParams, Meta, PostParams},
     client::Client,
@@ -13,6 +15,7 @@ use std::vec::Vec;
 
 use crate::errors::ApiError;
 use crate::models::kube::{DeployInfo, ResourceState, ServiceInfo};
+use crate::models::ingress::IngressInfo;
 
 lazy_static! {
     pub static ref KUBE_CLIENT: Client =
@@ -328,4 +331,66 @@ pub async fn get_pod_log(ns: &str, pod: &str, container: Option<String>) -> Resu
     let result = resource.logs(pod, &param)
         .await?;
     Ok(result)
+}
+
+/// Get ingress within a namespace
+pub async fn get_ing_with(ns: &str) -> Result<Vec<String>, ApiError> {
+    let resource: Api<Ingress> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let results: Vec<String> = resource
+        .list(&ListParams::default())
+        .await?
+        .iter()
+        .map(Meta::name)
+        .collect();
+    Ok(results)
+}
+
+pub async fn create_ing(info: &IngressInfo) -> Result<Ingress, ApiError> {
+    let resource: Api<Ingress> = Api::namespaced(KUBE_CLIENT.clone(), &info.ns);
+
+    let mut ing_obj: Ingress = serde_json::from_value(json!({
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Ingress",
+        "metadata": {
+            "name": &info.name,
+            "namespace": &info.ns,
+        },
+        "spec": {
+            "rules": [
+                {
+                    "host": &info.host,
+                    "http": {
+                        "paths": []
+                    }
+                }
+            ]
+        }
+    }))?;
+
+    if let Some(ref mut spec) = ing_obj.spec.as_mut() {
+        if let Some(ref mut rules) = spec.rules.as_mut() {
+            let mut rule = rules[0].clone();
+            if let Some(ref mut http) = rule.http.as_mut() {
+                   let paths: Vec<HTTPIngressPath> = info.paths.iter()
+                    .map(|x| {
+                        HTTPIngressPath {
+                            path: x.path.clone(),
+                            backend: IngressBackend {
+                                service_name: x.svc_name.clone(),
+                                service_port: IntOrString::Int(x.svc_port),
+                            }
+                        }
+                    })
+                    .collect();
+                http.paths = paths;
+            }
+
+            rules[0] = rule;
+        }
+    }
+
+
+    let res = resource.create(&PostParams::default(), &ing_obj).await?;
+
+    Ok(res)
 }

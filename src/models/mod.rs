@@ -8,5 +8,6 @@ pub mod registry;
 pub mod repository;
 pub mod tag;
 pub mod user;
+pub mod ingress;
 
 pub use db::DbConn;
