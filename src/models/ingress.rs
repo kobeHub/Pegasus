@@ -1,4 +1,4 @@
-use  k8s_openapi::api::extensions::v1beta1::{Ingress, HTTPIngressPath};
+use k8s_openapi::apimachinery::pkg::util::intstr::IntOrString;
 
 /// Basic Ingress information to operates ingress
 /// object in kubernetes
@@ -15,4 +15,13 @@ pub struct IngressPath {
     pub path: Option<String>,
     pub svc_name: String,
     pub svc_port: i32,
+}
+
+#[derive(Default, Serialize)]
+pub struct IngressResponse {
+    pub name: String,
+    pub namespace: String,
+    pub host: String,
+    pub svc_name: String,
+    pub svc_port: IntOrString,
 }

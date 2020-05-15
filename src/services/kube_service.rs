@@ -9,13 +9,15 @@ use kube::{
 };
 use lazy_static::lazy_static;
 use serde_json::json;
+use uuid::Uuid;
 
 use std::collections::BTreeMap;
 use std::vec::Vec;
 
 use crate::errors::ApiError;
 use crate::models::kube::{DeployInfo, ResourceState, ServiceInfo};
-use crate::models::ingress::IngressInfo;
+use crate::models::ingress::{IngressInfo, IngressResponse};
+use crate::models::namespace::Namespace as NS;
 
 lazy_static! {
     pub static ref KUBE_CLIENT: Client =
@@ -222,6 +224,17 @@ pub async fn get_svc_state(ns: &str, name: &str) -> Result<Service, ApiError> {
     Ok(svc)
 }
 
+/// Get service map for create ingress
+pub async fn get_svc_map(uid: &Uuid) -> Result<BTreeMap<String, Vec<ResourceState>>, ApiError> {
+    let mut results = BTreeMap::new();
+
+    for ns in NS::get_ns_of(uid)?.iter() {
+        let svc = get_svc_within(ns).await?;
+        results.insert(ns.clone(), svc);
+    }
+    Ok(results)
+}
+
 /// Create service with baisc config
 pub async fn create_svc(info: ServiceInfo) -> Result<Service, ApiError> {
     let resource: Api<Service> = Api::namespaced(KUBE_CLIENT.clone(), &info.namespace);
@@ -334,13 +347,35 @@ pub async fn get_pod_log(ns: &str, pod: &str, container: Option<String>) -> Resu
 }
 
 /// Get ingress within a namespace
-pub async fn get_ing_with(ns: &str) -> Result<Vec<String>, ApiError> {
+async fn get_ing_within(ns: &str) -> Result<Vec<IngressResponse>, ApiError> {
     let resource: Api<Ingress> = Api::namespaced(KUBE_CLIENT.clone(), ns);
-    let results: Vec<String> = resource
+    let results: Vec<IngressResponse> = resource
         .list(&ListParams::default())
         .await?
         .iter()
-        .map(Meta::name)
+        .map(|x| {
+            let mut res = IngressResponse::default();
+            res.name = Meta::name(x);
+            if let Some(meta) = x.metadata.as_ref() {
+                if let Some(namespace) = meta.namespace.as_ref() {
+                    res.namespace = namespace.to_string();
+                }
+            }
+            if let Some(spec) = x.spec.as_ref() {
+                if let Some(rules) = spec.rules.as_ref() {
+                    if rules.len() > 0 {
+                        if let Some(host) = rules[0].host.as_ref() {
+                            res.host = host.to_string();
+                        }
+                        if let Some(http) = rules[0].http.as_ref() {
+                            res.svc_name = http.paths[0].backend.service_name.clone();
+                            res.svc_port = http.paths[0].backend.service_port.clone();
+                        }
+                    }
+                }
+            }
+            res
+        })
         .collect();
     Ok(results)
 }
@@ -393,4 +428,28 @@ pub async fn create_ing(info: &IngressInfo) -> Result<Ingress, ApiError> {
     let res = resource.create(&PostParams::default(), &ing_obj).await?;
 
     Ok(res)
+}
+
+/// Delete Ingress
+pub async fn delete_ing(ns: &str, name: &str) -> Result<String, ApiError> {
+    let resource: Api<Ingress> = Api::namespaced(KUBE_CLIENT.clone(), ns);
+    let res = resource.delete(name, &DeleteParams::default()).await?;
+
+    if res.is_left() {
+        Ok(format!("Deleting service {}:{}", ns, name))
+    } else {
+        Ok("Deleted service successfully".to_string())
+    }
+}
+
+/// Get Ingress belong to one user
+pub async fn get_ing_belong(uid: &Uuid) -> Result<Vec<IngressResponse>, ApiError> {
+    let mut results = Vec::new();
+    for ns in NS::get_ns_of(uid)?.iter() {
+        let mut ings = get_ing_within(&ns).await?;
+        if ings.len() > 0 {
+            results.append(&mut ings);
+        }
+    }
+    Ok(results)
 }
