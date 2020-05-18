@@ -124,7 +124,7 @@ impl Repository {
         let conn = db::connection()?;
 
         let results: Vec<String> = repositories::table
-            .filter(repositories::belong_to.eq(id))
+            .filter(repositories::belong_to.eq(id).and(repositories::is_valid.eq(true)))
             .get_results(&conn)?
             .iter()
             .map(Repository::repo_name)
